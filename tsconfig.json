@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist",
+
+    // Environment Settings
+    "module": "commonjs", // Changed from 'esnext' to 'commonjs' for Node.js
+    "target": "es2020",
+    "esModuleInterop": true, // This is crucial for Express imports
+    "types": ["node"], // Explicitly adds Node.js types
+    
+    // Other Outputs
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
+
+    // Recommended Options
+    "strict": true,
+    "skipLibCheck": true
+    
+    // We'll remove these as they can cause conflicts with Node.js
+    // "noUncheckedIndexedAccess": true,
+    // "exactOptionalPropertyTypes": true,
+    // "jsx": "react-jsx",
+    // "verbatimModuleSyntax": true,
+    // "isolatedModules": true,
+    // "noUncheckedSideEffectImports": true,
+    // "moduleDetection": "force"
+  }
+}
