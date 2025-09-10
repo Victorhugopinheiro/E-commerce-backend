@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-// Importa o dotenv para carregar as variáveis de ambiente
+
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -19,7 +19,7 @@ const connectDB = async () => {
         
     } catch (error) {
         console.error('Erro ao conectar ao MongoDB:', error);
-        process.exit(1); // Encerra a aplicação em caso de erro
+        process.exit(1); 
     }
 };
 

@@ -6,6 +6,7 @@ import express from 'express';
 import cors from 'cors';
 import connectDB from './config/mongodb';
 import { setupCloudinary } from './config/cloudinary';
+import apiRouter from './routes'; // Importa o roteador principal
 
 
 
@@ -23,6 +24,8 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
+
+app.use('/api', apiRouter);
 
 app.get('/', (req, res) => {
   res.send('Servidor do E-commerce rodando!');

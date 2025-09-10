@@ -16,7 +16,7 @@ const userSchema = new mongoose.Schema({
     },
     cartData: {
         type: Object,
-        default: {} // Define um objeto vazio como valor padrão
+        default: {} 
     }
 }, { minimize: false });
 
