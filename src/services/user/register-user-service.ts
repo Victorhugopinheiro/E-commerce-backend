@@ -33,54 +33,61 @@ export const generateToken = (payload: TokenPayload): string => {
 class RegisterUserService {
     async execute({ name, email, password }: UserRegisterProps) {
 
-        const findUser = await userModel.findOne({ email });
+        try {
 
-        if (findUser) {
-            return { success: false, message: 'Usuário já existe' };
-        }
+            const findUser = await userModel.findOne({ email });
 
-        if (!isEmail(email)) {
-            return { success: false, message: 'Email inválido' };
-        }
-
-        if (password.length < 8) {
-            return { success: false, message: 'A senha deve ter pelo menos 8 caracteres' };
-        }
-
-        const saltPassword = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, saltPassword);
-
-
-        const newUser = new userModel({
-            name,
-            email,
-            password: hashedPassword
-        })
-
-        const user = await newUser.save();
-
-        const payload: TokenPayload = {
-            id: user._id,
-            email: user.email,
-        };
-
-        const token = generateToken(payload);
-
-
-        if(!token) {
-            return { success: false, message: 'Erro ao gerar token' };
-        }
-
-
-        return {
-            success: true, message: 'Usuário registrado com sucesso', user: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-                token
+            if (findUser) {
+                return { success: false, message: 'Usuário já existe' };
             }
-        };
 
+            if (!isEmail(email)) {
+                return { success: false, message: 'Email inválido' };
+            }
+
+            if (password.length < 8) {
+                return { success: false, message: 'A senha deve ter pelo menos 8 caracteres' };
+            }
+
+            const saltPassword = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash(password, saltPassword);
+
+
+            const newUser = new userModel({
+                name,
+                email,
+                password: hashedPassword
+            })
+
+            const user = await newUser.save();
+
+            const payload: TokenPayload = {
+                id: user._id,
+                email: user.email,
+            };
+
+            const token = generateToken(payload);
+
+
+            if (!token) {
+                return { success: false, message: 'Erro ao gerar token' };
+            }
+
+
+            return {
+                success: true, message: 'Usuário registrado com sucesso', user: {
+                    id: user._id,
+                    name: user.name,
+                    email: user.email,
+                    token
+                }
+            };
+
+
+        } catch (err) {
+            console.error(err);
+            return { success: false, message: 'Erro no servidor' };
+        }
 
     }
 }
