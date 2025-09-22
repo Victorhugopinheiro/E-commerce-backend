@@ -16,6 +16,7 @@ class ListProductService {
             console.error(err);
             return [];
         }
-    }}
+    }
+}
 
 export default ListProductService;

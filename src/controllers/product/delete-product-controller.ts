@@ -10,7 +10,7 @@ class DeleteProductController {
         // Lógica para deletar o produto com o ID fornecido
 
         if (!productId) {
-            return res.status(400).json({ success: false, message: 'Product ID is required' });
+            return res.status(400).json({ success: false, message: 'ID do produto é obrigatório.' });
         }
 
 

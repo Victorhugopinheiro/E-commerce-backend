@@ -49,7 +49,7 @@ class AddProductController {
 
         } catch (error) {
             console.error('Error adding product:', error);
-            return res.status(500).json({ success: false, message: 'Internal server error' });
+            return res.status(500).json({ success: false, message: 'Erro interno ao adicionar produto' });
 
         }
     }
