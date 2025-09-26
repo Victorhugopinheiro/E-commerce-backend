@@ -4,7 +4,7 @@ export interface IOrderItem {
   productId: mongoose.Types.ObjectId;
   quantity: number;
   size?: string;
-  price: number; // preço no momento da compra
+  price: number; 
 }
 
 export interface IOrder extends Document {
@@ -53,7 +53,8 @@ const OrderSchema = new Schema({
     type: String,
     enum: ['pending', 'paid', 'failed', 'refunded'],
     default: 'pending'
-  }
+  },
+  date: { type: Number, required: true }
 }, {
   timestamps: true
 });
