@@ -11,7 +11,7 @@ export const authCartMiddleware = async (req: AuthenticatedRequest, res: Respons
     const authCart = req.headers.authorization;
 
 
-    if (!authCart || !authCart.startsWith('Bearer ')) {
+    if (!authCart || !authCart.startsWith('Bearer')) {
         return res.status(401).json({ message: 'Token de autenticação não fornecido ou mal formatado.' });
     }
 
@@ -33,7 +33,7 @@ export const authCartMiddleware = async (req: AuthenticatedRequest, res: Respons
         }
 
         req.user = { id: decoded.id, email: decoded.email };
-        req.body.userId = decoded.id; // Para compatibilidade
+        req.body.userId = decoded.id; 
         next();
 
     } catch (error) {

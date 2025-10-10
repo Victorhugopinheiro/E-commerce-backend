@@ -25,7 +25,7 @@ class CreateOrderService {
                 if (item.quantity <= 0) {
                     return { success: false, message: `Quantidade inválida para o produto ${item.productId}` };
                 }
-
+                
                 const product = await productModel.findById(item.productId);
 
                 if (!product) {

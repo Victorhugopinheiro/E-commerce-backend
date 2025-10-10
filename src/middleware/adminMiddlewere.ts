@@ -20,7 +20,7 @@ export const authMiddleware = (req: AuthenticatedRequest, res: Response, next: N
         const decoded = jwt.verify(token, JWT_SECRET) as { userId: string; email: string };
 
         if (decoded.email !== process.env.ADMIN_EMAIL || decoded.userId !== process.env.ADMIN_ID) {
-            return res.status(403).json({ message: process.env.ADMIN_ID  });
+            return res.status(403).json({ message: 'Acesso negado. Usuário não é admin.' });
         }
 
         req.admin = decoded;
