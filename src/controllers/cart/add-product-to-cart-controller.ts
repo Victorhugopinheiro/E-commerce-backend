@@ -6,7 +6,7 @@ import AddProductToCartService from '../../services/cart/add-product-to-cart-ser
 class AddProductToCartController {
     async handle(req: Request, res: Response) {
 
-        const { productId, quantity, size } = req.body;
+        const { productId, quantity, size, name } = req.body;
         const idUser = req.body.userId;
         
 

@@ -5,6 +5,7 @@ export interface CreateOrderRequest {
     quantity: number;
     size?: string;
     price?: number;
+    name?: string;
   }[];
   shippingAddress: {
     street: string;
@@ -14,6 +15,7 @@ export interface CreateOrderRequest {
     country: string;
   };
   paymentMethod: string;
+  origin?: string;
 }
 
 export interface UpdateOrderStatusRequest {
