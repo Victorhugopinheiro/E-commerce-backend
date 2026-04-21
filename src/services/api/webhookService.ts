@@ -1,4 +1,5 @@
 import Stripe from "stripe";
+import { manageSubscription } from "../../utils/manageSubscription";
 
 export type StripeEventType =
   | 'checkout.session.completed'
@@ -20,12 +21,22 @@ export class WebhookService {
 
         switch (event.type) {
             case "checkout.session.completed":
-                return { success: true, message: 'Checkout completed' };
+                const session = event.data.object as Stripe.Checkout.Session;
+
+               const response = await manageSubscription(
+                {createAction: true, refoundAction: false, sessionId: event.data.object.id, userId: session.customer as string});
+                
 
 
 
-            case "payment_intent.succeeded":
-                return { success: true, message: 'Payment succeeded' };
+            case "charge.refunded":
+                const charge = event.data.object as Stripe.Charge;
+
+                const refundResponse = await manageSubscription(
+                    {createAction: false, refoundAction: true, sessionId: charge.id, userId: charge.customer as string}
+                );
+
+                return { success: true, message: 'Refound succeeded' };
 
 
 

@@ -25,6 +25,22 @@ class CreateOrderStripeService {
                 return { success: false, message: 'Usuário não encontrado' };
             }
 
+            let customerId = user.stripeCustomerId;
+
+            if(!customerId) {
+                const customer = await stripe.customers.create({
+                    email: user.email,
+                    name: user.name,
+                })
+
+                const changeUSer = await userModel.findByIdAndUpdate(userId, { stripeCustomerId: customer.id }, { new: true });
+
+
+                customerId = customer.id;
+
+
+            }
+
 
             const orderItems = [];
             let totalAmount = 0;
@@ -96,11 +112,15 @@ class CreateOrderStripeService {
 
 
             const session = await stripe.checkout.sessions.create({
+                customer: customerId,
                 success_url: process.env.STRIPE_SUCCESS_URL || `http://localhost:5173/`,
                 cancel_url: process.env.STRIPE_CANCEL_URL || `http://localhost:5173/`,
                 payment_method_types: ['card'],
                 mode: 'payment',
                 line_items,
+                metadata:{
+                    orderId: newOrder._id.toString(),
+                }
             })
 
             const rawCart = user.cartData

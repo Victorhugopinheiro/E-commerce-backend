@@ -17,6 +17,11 @@ const userSchema = new mongoose.Schema({
     cartData: {
         type: Object,
         default: {} 
+    },
+    stripeCustomerId: {
+        type: String,
+        unique: true,
+        sparse: true
     }
 }, { minimize: false });
 
