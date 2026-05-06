@@ -2,13 +2,14 @@ import { Router } from "express";
 import WebhookController from "../controllers/api/webhookController";
 import { authMiddleware } from "../middleware/adminMiddlewere";
 import { authCartMiddleware } from "../middleware/authCart";
+import bodyParser from "body-parser";
 
 
-const route = Router();
-const bodyParser = require('body-parser');
+const router = Router();
 
 
-route.post("/call", bodyParser.raw({type: 'application/json'}), new WebhookController().handle);  
+
+router.post("/call", authCartMiddleware, bodyParser.raw({type: 'application/json'}), new WebhookController().handle);  
 
 
-export default route;
+export default router;

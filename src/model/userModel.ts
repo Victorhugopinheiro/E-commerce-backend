@@ -8,7 +8,7 @@ const userSchema = new mongoose.Schema({
     email: {
         type: String,
         required: true,
-        unique: true 
+        unique: true
     },
     password: {
         type: String,
@@ -16,15 +16,27 @@ const userSchema = new mongoose.Schema({
     },
     cartData: {
         type: Object,
-        default: {} 
+        default: {}
     },
     stripeCustomerId: {
         type: String,
         unique: true,
         sparse: true
+    },
+    addresses:{
+        type: [{
+            street: String,
+            city: String,
+            state: String,
+            zipCode: String,
+            country: String,
+            phone: String,
+        }],
+        default: []
     }
+
 }, { minimize: false });
 
-const userModel = mongoose.models.user ||  mongoose.model('user', userSchema);
+const userModel = mongoose.models.user || mongoose.model('user', userSchema);
 
 export default userModel;

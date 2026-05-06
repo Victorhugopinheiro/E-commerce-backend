@@ -29,14 +29,19 @@ export const authCartMiddleware = async (req: AuthenticatedRequest, res: Respons
         const user = await userModel.findById(decoded.id);
 
         if (!user) {
+
             return res.status(401).json({ message: 'Usuário não encontrado.' });
         }
 
+        if (req.body) {
+            req.body.userId = decoded.id;
+        }
         req.user = { id: decoded.id, email: decoded.email };
-        req.body.userId = decoded.id; 
+       
         next();
 
     } catch (error) {
+        console.error('Erro na autenticação do token:', error);
         return res.status(401).json({ error });
     }
 
