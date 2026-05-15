@@ -5,6 +5,8 @@ export interface Address {
     zipCode: string;
     country: string;
     phone: string;
+    isPrimary?: boolean;
+    _id?: string;
 }
 
 export interface User {

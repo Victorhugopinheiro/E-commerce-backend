@@ -31,6 +31,10 @@ const userSchema = new mongoose.Schema({
             zipCode: String,
             country: String,
             phone: String,
+            isPrimary: {
+                type: Boolean,
+                default: false
+            }
         }],
         default: []
     }

@@ -11,6 +11,10 @@ class userDetailService {
 
         return {
             userAddresses: user.addresses,
+            userInfo: {
+                name: user.name,
+                phone: user.phone
+            },
             success: true,
             message: 'Detalhes do usuário encontrados com sucesso'
         }
