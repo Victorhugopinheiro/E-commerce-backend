@@ -8,23 +8,22 @@ interface AuthenticatedRequest extends Request {
 
 export const authCartMiddleware = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
 
-    const authCart = req.headers.authorization;
 
 
-    if (!authCart || !authCart.startsWith('Bearer')) {
+
+    const newToken = req.cookies.authToken;
+   
+
+
+    if (!newToken ) {
         return res.status(401).json({ message: 'Token de autenticação não fornecido ou mal formatado.' });
     }
 
 
-    const token = authCart.split(' ')[1];
-
-    if (!token) {
-        return res.status(401).json({ message: 'Token de autenticação não fornecido.' });
-    }
 
     try {
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { id: string; email: string };
+        const decoded = jwt.verify(newToken, process.env.JWT_SECRET!) as { id: string; email: string };
 
         const user = await userModel.findById(decoded.id);
 

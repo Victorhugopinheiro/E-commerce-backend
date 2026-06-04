@@ -20,7 +20,7 @@ class AddProductService {
     try {
 
       if (!name || !description || !price || !category || !subCategory || !sizes || sizes.length === 0 || !image || image.length === 0) {
-        return { success: false, message: 'Está faltando informações sobre o produto' };
+        throw new Error('Todos os campos são obrigatórios');
       }
 
 
@@ -40,12 +40,12 @@ class AddProductService {
       const newProduct = new productModel(product);
       await newProduct.save();
 
-      return { success: true, message: 'Produto adicionado com sucesso' }
+      return { success: true, message: 'Produto adicionado com sucesso' };
 
 
     } catch (err) {
-      console.error(err);
-      return { success: false, message: 'Erro no servidor' };
+     
+     throw new Error("Erro ao adicionar produto")
     }
 
   }

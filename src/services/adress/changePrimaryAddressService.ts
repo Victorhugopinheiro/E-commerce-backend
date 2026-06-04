@@ -29,13 +29,18 @@ class ChangePrimaryAddressService {
         const addressIndex = userAddressesCopy.findIndex((items) => items._id?.toString() === objectIdAddressId.toString())
 
         if (addressIndex !== -1) {
+
+            userAddressesCopy.forEach((address) => {
+                address.isPrimary = false
+            })
+            
             userAddressesCopy[addressIndex].isPrimary = userAddressesCopy[addressIndex].isPrimary = true
         }
 
 
-        const updatingAddressPrimary = await userModel.findByIdAndUpdate(userId, {addresses:userAddressesCopy}, {new:true})
+        const updatingAddressPrimary = await userModel.findByIdAndUpdate(userId, { addresses: userAddressesCopy }, { new: true })
 
-        if(!updatingAddressPrimary){
+        if (!updatingAddressPrimary) {
             throw new Error("Api error")
         }
 

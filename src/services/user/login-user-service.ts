@@ -31,6 +31,7 @@ class LoginUserService {
 
             if (passwordMatch) {
                 const token = generateToken({ id: user._id, email: user.email });
+                
 
                 return { success: true, message: 'Login realizado com sucesso', token };
             } else {
