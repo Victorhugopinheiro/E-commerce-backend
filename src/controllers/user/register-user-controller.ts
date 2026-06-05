@@ -18,9 +18,30 @@ class RegisterUserController {
 
 
         const result = await authService.execute({ name: username, email, password });
-        
 
-        return res.status(201).json(result);
+
+
+        const formatedResult = {
+            success: result.success,
+            message: result.message,
+            user: {
+                id: result.user?.id,
+                name: result.user?.name,
+                email: result.user?.email,
+            }
+        }
+
+
+        res.cookie("authToken", result.user?.token, {
+            httpOnly: true,        // JS cannot access (XSS protection)
+            secure: false,         // Set to true in production (HTTPS only)
+            sameSite: 'strict',       // CSRF protection
+            maxAge: 24 * 60 * 60 * 1000, // 1 day
+            path: '/',             // Available on all routes
+            domain: 'localhost'    // Change in production
+        })
+
+        return res.status(201).json(formatedResult);
     }
 }
 

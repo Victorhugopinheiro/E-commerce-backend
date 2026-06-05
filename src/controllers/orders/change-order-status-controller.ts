@@ -12,6 +12,8 @@ class ChangeOrderStatusController {
 
         const changeStatus = new ChangeOrderStatusService();
         const result = await changeStatus.execute({ orderId, status });
+
+        res.json(result);
     }
 }
 

@@ -14,7 +14,22 @@ class LoginUserController {
         const loginUserService = new LoginUserService();
         const resultLoginUserService = await loginUserService.execute({ email, password });
 
-        return response.status(200).json(resultLoginUserService);
+        const formatedResult = {
+            success: resultLoginUserService.success,
+            message: resultLoginUserService.message,
+        }
+
+        response.cookie('authToken', resultLoginUserService.token, {
+            httpOnly: true,        // JS cannot access (XSS protection)
+            secure: false,         // Set to true in production (HTTPS only)
+            sameSite: 'strict',       // CSRF protection
+            maxAge: 24 * 60 * 60 * 1000, // 1 day
+            path: '/',             // Available on all routes
+            domain: 'localhost'    // Change in production
+        });
+       
+
+        return response.status(200).json(formatedResult);
 
     }
 }

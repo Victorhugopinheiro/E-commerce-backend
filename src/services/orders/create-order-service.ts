@@ -66,8 +66,9 @@ class CreateOrderService {
             for (const item of items) {
                 const cartItemIndex = itemsCart.findIndex(cartItem => cartItem.productId === item.productId && cartItem.size === item.size);
                 if (cartItemIndex !== -1) {
-                    user.cartData.splice(cartItemIndex, 1);
+                   itemsCart.splice(cartItemIndex, 1);
                 }
+            
             }
 
             return { success: true, message: 'Pedido criado com sucesso', order: newOrder };

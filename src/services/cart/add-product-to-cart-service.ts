@@ -6,12 +6,13 @@ interface AddProductToCartProps {
     productId: string;
     quantity: number;
     size?: string;
+    name?: string;
 }
 
 
 
 class AddProductToCartService {
-    async execute({ productId, quantity, userId, size }: AddProductToCartProps) {
+    async execute({ productId, quantity, userId, size, name }: AddProductToCartProps) {
 
 
         try {
@@ -41,7 +42,7 @@ class AddProductToCartService {
             if (productIndex !== -1) {
                 userCart[productIndex].quantity = Number(userCart[productIndex].quantity + 1);
             } else {
-                userCart.push({ productId, quantity, size });
+                userCart.push({ productId, quantity, size, name });
             }
 
             const addedProduct = await userModel.findByIdAndUpdate(userId, { cartData: userCart }, { new: true });

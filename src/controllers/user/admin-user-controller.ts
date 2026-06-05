@@ -12,7 +12,7 @@ class AdminUserController {
         const emaill = process.env.ADMIN_EMAIL
         const passwordd = process.env.ADMIN_PASSWORD
 
-       
+
 
         if (!email || !password) {
             return response.status(400).json({ message: 'E-mail e senha são obrigatórios.' });
@@ -35,14 +35,20 @@ class AdminUserController {
             }
 
 
-
-
-
             const token = jwt.sign({ email, userId: user._id }, process.env.JWT_SECRET as string, { expiresIn: '1d' });
 
 
+            response.cookie('authToken', token, {
+                httpOnly: true,        // JS cannot access (XSS protection)
+                secure: false,         // Set to true in production (HTTPS only)
+                sameSite: 'strict',       // CSRF protection
+                maxAge: 24 * 60 * 60 * 1000, // 1 day
+                path: '/',             // Available on all routes
+                domain: 'localhost'    // Change in production
+            });
 
-            return response.status(200).json({ message: 'Usuário admin autenticado', token });
+
+            return response.status(200).json({ message: 'Usuário admin autenticado', success: true });
 
         } catch (err) {
             return response.status(500).json({ message: 'Erro no servidor.', err });
