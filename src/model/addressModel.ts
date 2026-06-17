@@ -31,10 +31,16 @@ const addressSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    isPrimary:{
+    isPrimary: {
         type: Boolean,
         default: false
-    }
+    },
+    number: {
+        type: String,
+        required: true
+    },
+    ibgeCode: { type: String }, // Add this
+
 
 })
 

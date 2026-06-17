@@ -4,7 +4,7 @@ export interface IOrderItem {
   productId: mongoose.Types.ObjectId;
   quantity: number;
   size?: string;
-  price: number; 
+  price: number;
 }
 
 export interface IOrder extends Document {
@@ -46,15 +46,26 @@ const OrderSchema = new Schema({
     city: { type: String, required: true },
     state: { type: String, required: true },
     zipCode: { type: String, required: true },
-    country: { type: String, required: true }
+    country: { type: String, required: true },
+    ibgeCode: { type: String }, 
+    number: { type: String, required: true },
+    phone: { type: String }
+
   },
   paymentMethod: { type: String, required: true },
   paymentStatus: {
     type: String,
     enum: ['pending', 'paid', 'failed', 'refunded'],
     default: 'pending'
-  },
-  date: { type: Number, required: true }
+  }, 
+  date: { type: Number, required: true },
+  checkoutUrl: { type: String },
+  checkoutId: { type: String },
+  checkoutStatus: {
+    type: String,
+    enum: ['pending', 'paid', 'failed'],
+    default: 'pending'
+  }
 }, {
   timestamps: true
 });

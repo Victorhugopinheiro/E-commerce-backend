@@ -23,20 +23,33 @@ const userSchema = new mongoose.Schema({
         unique: true,
         sparse: true
     },
-    addresses:{
+    asaasCustomerId: {
+        type: String,
+        unique: true,
+        sparse: true
+    },
+    addresses: {
         type: [{
             street: String,
+            number:String,
             city: String,
             state: String,
             zipCode: String,
             country: String,
             phone: String,
+            ibgeCode: String,
             isPrimary: {
                 type: Boolean,
                 default: false
             }
+
         }],
         default: []
+    },
+    cpf: {
+        type: String,
+        unique: true,
+        sparse: true
     }
 
 }, { minimize: false });
