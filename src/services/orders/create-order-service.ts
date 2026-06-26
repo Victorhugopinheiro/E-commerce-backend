@@ -25,7 +25,7 @@ class CreateOrderService {
                 if (item.quantity <= 0) {
                     return { success: false, message: `Quantidade inválida para o produto ${item.productId}` };
                 }
-                
+
                 const product = await productModel.findById(item.productId);
 
                 if (!product) {
@@ -66,9 +66,9 @@ class CreateOrderService {
             for (const item of items) {
                 const cartItemIndex = itemsCart.findIndex(cartItem => cartItem.productId === item.productId && cartItem.size === item.size);
                 if (cartItemIndex !== -1) {
-                   itemsCart.splice(cartItemIndex, 1);
+                    itemsCart.splice(cartItemIndex, 1);
                 }
-            
+
             }
 
             return { success: true, message: 'Pedido criado com sucesso', order: newOrder };

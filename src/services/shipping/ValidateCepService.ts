@@ -11,7 +11,13 @@ class ValidateCepService {
             throw new Error('CEP não encontrado.');
         }
 
-        return data
+        return {
+            street: data.logradouro || '',
+            city: data.localidade,
+            state: data.uf,
+            zipCode: cep,
+            ibgeCode: data.ibge, // This is the IBGE code
+        };
 
 
     }

@@ -6,7 +6,7 @@ class CalculatingCepController {
     async handle(req: Request, res: Response) {
 
         try {
-            const { destinationCep, width, height, length, weight, quantity,  value  } = req.body
+            const { destinationCep, width, height, length, weight, quantity, value } = req.body
 
             if (!destinationCep || !width || !height || !length || !weight || !quantity || !value) {
                 return res.status(400).json({ success: false, message: 'Todos os campos são obrigatórios' });
