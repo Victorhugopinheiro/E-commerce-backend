@@ -1,7 +1,8 @@
 import mongoose from "mongoose";
 import userModel from "../../model/userModel";
 import { User } from "../../types/user";
-
+import addressModel from "../../model/addressModel";
+import { IAddress } from "../../types/adresses";
 
 
 
@@ -22,6 +23,19 @@ class ChangePrimaryAddressService {
 
         const objectIdAddressId = new mongoose.Types.ObjectId(addressId);
 
+        const allAdresses: IAddress[] = await addressModel.find({ userId })
+
+        if (!allAdresses || allAdresses.length === 0) {
+            return { success: false, message: "Address not found." };
+        }
+
+        await addressModel.updateMany({ userId }, { isPrimary: false })
+
+        await addressModel.findByIdAndUpdate(objectIdAddressId, { isPrimary: true }, { new: true })
+
+        const changingAdresses = await addressModel.findByIdAndUpdate(objectIdAddressId, { isPrimary: true }, { new: true })
+
+
         const userAddresses = user.addresses;
 
         const userAddressesCopy = Array.isArray(user.addresses) ? [...userAddresses!] : []
@@ -33,7 +47,7 @@ class ChangePrimaryAddressService {
             userAddressesCopy.forEach((address) => {
                 address.isPrimary = false
             })
-            
+
             userAddressesCopy[addressIndex].isPrimary = userAddressesCopy[addressIndex].isPrimary = true
         }
 
