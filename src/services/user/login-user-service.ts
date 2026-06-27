@@ -14,8 +14,6 @@ class LoginUserService {
 
         try {
 
-
-
             if (!email || !password) {
                 return { success: false, message: 'Email e Password são obrigatórios' };
             }

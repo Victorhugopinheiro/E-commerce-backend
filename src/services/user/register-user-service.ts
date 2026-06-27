@@ -18,7 +18,7 @@ interface TokenPayload {
 
 export const generateToken = (payload: TokenPayload): string => {
     const secret = process.env.JWT_SECRET;
-    const expiresIn = '24h';
+    const expiresIn = '1d';
 
     if (!secret) {
         throw new Error('A variável de ambiente JWT_SECRET não está definida.');
