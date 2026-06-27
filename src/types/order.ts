@@ -13,6 +13,9 @@ export interface CreateOrderRequest {
     state: string;
     zipCode: string;
     country: string;
+    number: string;
+    phone?: string;
+    ibgeCode: string;
   };
   paymentMethod: string;
   origin?: string;
