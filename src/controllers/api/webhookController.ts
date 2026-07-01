@@ -1,6 +1,7 @@
 import Stripe from "stripe";
 import { stripe } from "../../lib/stripe";
 import WebhookService from "../../services/api/webhookService";
+import AsaasWebhookService from "../../services/api/asaasWebhookService";
 
 
 
@@ -10,21 +11,20 @@ export class WebhookController {
 
 
         const payload = req.body;
-        const sig = req.headers['stripe-signature'];
 
-        let event: Stripe.Event;
-        const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET as string;
 
         try {
-            event = stripe.webhooks.constructEvent(payload, sig, endpointSecret);
+
+            const asaasService = new AsaasWebhookService();
+            const response = await asaasService.execute();
+
+
+
+
         } catch (err) {
+            console.error('Error processing webhook:', err);
             return res.status(400).send(`Webhook Error: ${err}`);
         }
-
-        const webhookService = new WebhookService();
-        const result = await webhookService.execute({ event });
-
-       res.status(200).json({ received: true });
 
 
 
