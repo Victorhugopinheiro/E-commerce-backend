@@ -20,8 +20,6 @@ const setupCloudinary = async () => {
     api_secret: apiSecret,
     secure: true,
   });
-
-  console.log('Cloudinary configurado com sucesso!');
 };
 
 export { setupCloudinary, cloudinary };
