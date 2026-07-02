@@ -1,8 +1,17 @@
 import { Request, Response } from "express";
 import CreateOrderService from "../../services/orders/create-order-service";
+import CepValidator from "../../utils/cepValidator";
 
 
 class CreateOrderController {
+
+    private CepValidator: CepValidator;
+
+    constructor() {
+        this.CepValidator = new CepValidator();
+    }
+
+
     async handle(req: Request, res: Response) {
 
         const { userId, items, shippingAddress, paymentMethod } = req.body;
@@ -12,12 +21,13 @@ class CreateOrderController {
         }
 
         items.map((item: { size: string; quantity: number; productId: string; price: number }) => {
-            if(!item.size || !item.quantity || !item.productId){
+            if (!item.size || !item.quantity || !item.productId) {
                 return res.status(400).json({ success: false, message: 'Dados incompletos para criar o pedido.' });
-            }})
+            }
+        })
 
 
-      
+
 
 
         if (!items || !Array.isArray(items) || items.length === 0) {
@@ -25,22 +35,28 @@ class CreateOrderController {
         }
 
 
+        const cepValidations = await this.CepValidator.validate(shippingAddress.zipCode);
+
+        if (!cepValidations.success) {
+            return res.status(400).json({ success: false, message: cepValidations.error });
+        }
+
         const createOrderService = new CreateOrderService();
-        const result = await createOrderService.execute({ userId, items, shippingAddress, paymentMethod }); 
+        const result = await createOrderService.execute({ userId, items, shippingAddress, paymentMethod });
 
 
         res.status(result.success ? 200 : 400).json(result);
 
 
-        
 
 
 
 
 
-    
 
-}
+
+
+    }
 }
 
 

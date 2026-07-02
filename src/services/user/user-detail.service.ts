@@ -1,5 +1,5 @@
 import userModel from "../../model/userModel";
-
+import addressModel from "../../model/addressModel";
 class userDetailService {
     async execute(userId: string) {
 
@@ -9,8 +9,16 @@ class userDetailService {
             throw new Error('Usuário não encontrado');
         }
 
+        const addresses = await addressModel.find({ userId: user._id })
+
+        if (!addresses) {
+            throw new Error('Endereços do usuário não encontrados');
+        }
+
+
+
         return {
-            userAddresses: user.addresses,
+            userAddresses: addresses,
             userInfo: {
                 name: user.name,
                 phone: user.phone

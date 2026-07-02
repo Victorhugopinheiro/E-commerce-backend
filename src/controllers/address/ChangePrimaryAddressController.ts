@@ -1,7 +1,7 @@
 
 
 import { Request, Response } from "express";
-import ChangePrimaryAddressService from "../../services/adress/changePrimaryAddressService";
+import ChangePrimaryAddressService from "../../services/address/changePrimaryAddressService";
 
 interface AuthenticatedRequest extends Request {
     user?: { id: string; email: string };
