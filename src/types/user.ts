@@ -16,6 +16,7 @@ export interface User {
     password?: string;
     cartData?: Record<string, any>;
     stripeCustomerId?: string;
+    asaasCustomerId?: string;
     addresses?: Address[];
 }
 
