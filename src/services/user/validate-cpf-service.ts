@@ -18,7 +18,7 @@ class ValidateCpfService {
         try {
             const user = await userModel.findById(userId)
 
-            console.log('user:', user);
+            
 
             if (!user) {
                 throw new Error('Usuário não encontrado');
@@ -26,7 +26,7 @@ class ValidateCpfService {
 
             const userAlredyHaveCpf = await userIdentificationModel.findOne({ userId });
 
-            console.log('userAlredyHaveCpf:', userAlredyHaveCpf);
+            
 
             if (userAlredyHaveCpf) {
                 throw new Error('Usuário já possui CPF cadastrado');
@@ -34,7 +34,7 @@ class ValidateCpfService {
 
             const cpfExists = await userIdentificationModel.findOne({ userCpf });
 
-            console.log('cpfExists:', cpfExists);
+        
 
             if (cpfExists) {
                 throw new Error('CPF já cadastrado');
@@ -65,7 +65,7 @@ class ValidateCpfService {
             };
 
         } catch (error) {
-            console.error(error);
+            
             throw new Error('Erro ao validar CPF');
         }
 

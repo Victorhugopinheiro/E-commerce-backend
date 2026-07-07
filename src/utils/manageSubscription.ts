@@ -27,7 +27,7 @@ export const manageSubscription = async ({ createAction, refoundAction, sessionI
         
         const changingOrder = await orderModel.findOneAndUpdate
         ({_id: orderId}, { status: 'paid' }, { new: true });
-        console.log('Checkout Session:', orderId);
+      
 
     }else if(refoundAction){
         await orderModel.findOneAndUpdate({_id:orderId}, {status: 'refunded'}, {new: true});

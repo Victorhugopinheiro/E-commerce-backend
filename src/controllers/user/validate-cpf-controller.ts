@@ -16,7 +16,7 @@ class ValidateCpfController {
             return res.status(400).json({ success: false, message: 'CPF inválido' });
         }
 
-        console.log('userId:', userId, 'userCpf:', userCpf, 'firstName:', firstName, 'lastName:', lastName);
+       
 
         try {
             const validateCpfService = new ValidateCpfService()

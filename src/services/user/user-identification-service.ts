@@ -10,7 +10,7 @@ class UserIdentificationService {
             throw new Error('Usuário não encontrado');
         }
 
-        console.log('user:', user);
+     
 
         return {
             data: {
