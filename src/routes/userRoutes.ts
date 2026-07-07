@@ -4,6 +4,7 @@ import RegisterUserController from '../controllers/user/register-user-controller
 import LoginUserController from '../controllers/user/login-user-controller';
 import AdminUserController from '../controllers/user/admin-user-controller';
 import UserDetailController from '../controllers/user/user-detail.controller';
+import ValidateCpfController from '../controllers/user/validate-cpf-controller';
 import { authCartMiddleware } from '../middleware/authCart';
 import UserLogoutController from '../controllers/user/logout-user-controller';
 import { authMiddleware } from '../middleware/adminMiddlewere';
