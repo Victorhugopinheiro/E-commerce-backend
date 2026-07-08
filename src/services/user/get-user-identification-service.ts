@@ -1,4 +1,4 @@
-import userIdentificationModel from '../../model/UserIdentification ';
+import userIdentificationModel from '../../model/userIdentification'
 import userModel from '../../model/userModel';
 class GetUserIdentificationService {
     async execute(userId: string) {
