@@ -9,7 +9,6 @@ import { authCartMiddleware } from '../middleware/authCart';
 import UserLogoutController from '../controllers/user/logout-user-controller';
 import { authMiddleware } from '../middleware/adminMiddlewere';
 import LogoutAdmingController from '../controllers/user/logout-admin-controller';
-import ValidateCpfController from '../controllers/user/validate-cpf-controller';
 import GetUserIdentificationController from '../controllers/user/get-user-identification-controller';
 
 const router = Router();
