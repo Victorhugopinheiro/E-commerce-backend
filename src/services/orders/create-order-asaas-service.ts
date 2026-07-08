@@ -2,8 +2,8 @@ import orderModel from "../../model/orderModel";
 import productModel from "../../model/productModel";
 import userModel from "../../model/userModel";
 import { CreateOrderRequest } from "../../types/order";
-import type { AsaasCheckoutSessionResponse, AsaasErrorResponse, AsaasCheckoutSession } from "../../types/asaasCheckoutSession";
-import userIdentificationModel from "../../model/UserIdentification ";
+import type { AsaasCheckoutSessionResponse, AsaasErrorResponse, AsaasCheckoutSession } from "../../types/checkoutTypes";
+import userIdentificationModel from "../../model/userIdentification";
 
 
 type AsaasCustomerResponse = {
@@ -163,7 +163,7 @@ class CreateOrderAsaasService {
                 return {
                     success: true,
                     message: 'Pedido criado com sucesso',
-                    checkoutUrl: existingCheckout.asaasCheckoutUrl,
+                    checkoutUrl: existingCheckout.checkoutUrl,
 
                 }
             }
@@ -242,12 +242,16 @@ class CreateOrderAsaasService {
 
 
 
-            await orderModel.findByIdAndUpdate(newOrder._id, {
+            const atOrder = await orderModel.findByIdAndUpdate(newOrder._id, {
                 checkoutUrl: payment.link,
                 checkoutId: payment.id,
             }, {
                 new: true
             })
+
+           
+
+            console.log('orderAtt', atOrder);
 
             const rawCart = user.cartData;
             const itemsCart = Array.isArray(rawCart) ? [...rawCart] : [];
@@ -264,10 +268,12 @@ class CreateOrderAsaasService {
 
             await userModel.findByIdAndUpdate(userId, { cartData: itemsCart }, { new: true });
 
+           
+
             return {
                 success: true,
                 message: 'Pedido criado com sucesso',
-                order: newOrder,
+                order: atOrder,
                 checkoutUrl: payment.link
             };
         } catch (err) {
