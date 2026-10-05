@@ -5,6 +5,7 @@ import bcrypt from 'bcrypt'; // ES Modules
 import jwt from 'jsonwebtoken';
 
 
+
 interface UserRegisterProps {
     name: string;
     email: string;
