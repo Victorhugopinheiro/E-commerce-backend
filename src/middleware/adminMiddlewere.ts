@@ -3,11 +3,16 @@ import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'seu_segredo_super_secreto';
 
-interface AuthenticatedRequest extends Request {
-    admin?: { userId: string; email: string };
+
+declare global {
+    namespace Express {
+        interface Request {
+            admin?: { userId: string; email: string };
+        }
+    }
 }
 
-export const authMiddleware = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.cookies.authToken 
 
     if (!authHeader) {

@@ -1,5 +1,8 @@
 // filepath: src/types/express/index.d.ts
-import { AuthenticatedRequest } from "../../middleware/adminMiddlewere";
+export interface AdminJwtPayload {
+    userId: string;
+    email: string;
+}
 
 declare global {
     namespace Express {
