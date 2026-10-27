@@ -9,6 +9,7 @@ import { authMiddleware } from '../middleware/adminMiddlewere';
 import WebhookController from '../controllers/api/webhookController';
 import shippingRoutes from './shippingRoutes';
 import categoryRoutes from './categoryRoutes';
+import reviewRoutes from './reviewRoutes';
 const router = Router();
 
 // Mapeia as rotas para seus respectivos caminhos base
@@ -20,4 +21,5 @@ router.use("/address", addressRoutes);
 router.use("/webhook", webhookRoutes );
 router.use("/shipping", shippingRoutes)
 router.use("/categories", categoryRoutes)
+router.use("/reviews", reviewRoutes)
 export default router;
