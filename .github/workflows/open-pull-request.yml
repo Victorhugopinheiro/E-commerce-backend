@@ -32,7 +32,7 @@ jobs:
           fi
 
           git fetch origin main
-          TITLE="$(git log --reverse --pretty=%s origin/main..HEAD | head -n 1)"
+          TITLE="$(git log origin/main..HEAD --pretty=%s --no-merges | grep -v '^ci:' | head -n 1 || true)"
           if [ -z "$TITLE" ]; then
             TITLE="$BRANCH"
           fi
