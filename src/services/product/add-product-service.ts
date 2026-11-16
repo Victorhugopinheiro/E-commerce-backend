@@ -1,5 +1,5 @@
-
-import productModel from '../../model/productModel';
+import productModel from "../../model/productModel";
+import { Product as ProductType } from "../../types/mongoose.gen";
 
 interface ProductProps {
   name: string;
@@ -11,18 +11,36 @@ interface ProductProps {
   bestseller: boolean;
   image: string[];
   date: number;
+  franchise: string;
 }
 
-
 class AddProductService {
-  async execute({ name, description, price, category, subCategory, sizes, bestseller, image, date }: ProductProps) {
-
+  async execute({
+    name,
+    description,
+    price,
+    category,
+    subCategory,
+    sizes,
+    bestseller,
+    image,
+    date,
+    franchise,
+  }: ProductProps) {
     try {
-
-      if (!name || !description || !price || !category || !subCategory || !sizes || sizes.length === 0 || !image || image.length === 0) {
-        throw new Error('Todos os campos são obrigatórios');
+      if (
+        !name ||
+        !description ||
+        !price ||
+        !category ||
+        !subCategory ||
+        !sizes ||
+        sizes.length === 0 ||
+        !image ||
+        image.length === 0
+      ) {
+        throw new Error("Todos os campos são obrigatórios");
       }
-
 
       const product: ProductProps = {
         name,
@@ -33,24 +51,18 @@ class AddProductService {
         subCategory,
         sizes,
         bestseller: bestseller || false,
-        date
-      }
-
+        date,
+        franchise: franchise || "",
+      };
 
       const newProduct = new productModel(product);
       await newProduct.save();
 
-      return { success: true, message: 'Produto adicionado com sucesso' };
-
-
+      return { success: true, message: "Produto adicionado com sucesso" };
     } catch (err) {
-     
-     throw new Error("Erro ao adicionar produto")
+      throw new Error("Erro ao adicionar produto");
     }
-
   }
-
 }
-
 
 export default AddProductService;
