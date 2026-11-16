@@ -1,0 +1,82 @@
+import productModel from "../../model/productModel";
+
+const SHOWCASE_LIMIT = 8;
+
+export interface ShowcaseItem {
+  _id: string;
+  name: string;
+  price: number;
+  image?: string;
+}
+
+export interface HomeShowcase {
+  bestsellers: ShowcaseItem[];
+  gtaVi: ShowcaseItem[];
+  marvel: ShowcaseItem[];
+  dc: ShowcaseItem[];
+}
+
+type LeanShowcaseProduct = {
+  _id: unknown;
+  name?: unknown;
+  price?: unknown;
+  image?: unknown;
+};
+
+function toShowcaseItem(product: LeanShowcaseProduct): ShowcaseItem | null {
+  const id = product._id == null ? "" : String(product._id);
+  if (!id || typeof product.name !== "string" || product.name.length === 0) {
+    return null;
+  }
+  if (typeof product.price !== "number" || Number.isNaN(product.price)) {
+    return null;
+  }
+
+  const item: ShowcaseItem = {
+    _id: id,
+    name: product.name,
+    price: product.price,
+  };
+
+  if (Array.isArray(product.image)) {
+    const firstImage = product.image[0];
+    if (typeof firstImage === "string" && firstImage.length > 0) {
+      item.image = firstImage;
+    }
+  }
+
+  return item;
+}
+
+class HomeShowcaseService {
+  async execute(): Promise<HomeShowcase> {
+    const [bestsellers, gtaVi, marvel, dc] = await Promise.all([
+      this.list({ bestseller: true }),
+      this.list({ franchise: "GTA VI" }),
+      this.list({ franchise: "Marvel" }),
+      this.list({ franchise: "DC" }),
+    ]);
+
+    return { bestsellers, gtaVi, marvel, dc };
+  }
+
+  private async list(filter: Record<string, unknown>): Promise<ShowcaseItem[]> {
+    const products = await productModel
+      .find({
+        ...filter,
+        name: { $type: "string", $ne: "" },
+        price: { $type: "number" },
+      })
+      .sort({ date: -1, _id: 1 })
+      .limit(SHOWCASE_LIMIT)
+      .select("name price image")
+      .lean<LeanShowcaseProduct[]>();
+
+    return products.flatMap((product) => {
+      const item = toShowcaseItem(product);
+      return item ? [item] : [];
+    });
+  }
+}
+
+export default HomeShowcaseService;
