@@ -1,0 +1,53 @@
+name: Open pull request
+
+on:
+  push:
+    branches-ignore:
+      - main
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  open-pull-request:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Open a pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          BRANCH="${GITHUB_REF_NAME}"
+
+          EXISTING="$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --base main --json number --jq '.[0].number')"
+          if [ -n "$EXISTING" ]; then
+            echo "Pull request #${EXISTING} already exists for ${BRANCH}"
+            exit 0
+          fi
+
+          git fetch origin main
+          TITLE="$(git log origin/main..HEAD --pretty=%s --no-merges | grep -v '^ci:' | head -n 1 || true)"
+          if [ -z "$TITLE" ]; then
+            TITLE="$BRANCH"
+          fi
+
+          BODY="$(printf '%s\n' \
+            "## Summary" \
+            "- ${TITLE}" \
+            "" \
+            "## Test plan" \
+            "- [ ] Confirm this pull request contains only the intended change" \
+            "- [ ] Run the affected flow and confirm it behaves as expected")"
+
+          gh pr create \
+            --repo "$GITHUB_REPOSITORY" \
+            --base main \
+            --head "$BRANCH" \
+            --title "$TITLE" \
+            --body "$BODY"
