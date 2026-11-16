@@ -6,12 +6,12 @@ interface ProductProps {
   description: string;
   price: number;
   category: string;
-  subCategory: string;
+  subCategory?: string;
   sizes: string[];
   bestseller: boolean;
   image: string[];
   date: number;
-  franchise: string;
+  franchise?: string;
 }
 
 class AddProductService {
@@ -33,7 +33,6 @@ class AddProductService {
         !description ||
         !price ||
         !category ||
-        !subCategory ||
         !sizes ||
         sizes.length === 0 ||
         !image ||
@@ -52,7 +51,7 @@ class AddProductService {
         sizes,
         bestseller: bestseller || false,
         date,
-        franchise: franchise || "",
+        franchise: franchise || undefined,
       };
 
       const newProduct = new productModel(product);
