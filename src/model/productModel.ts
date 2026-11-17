@@ -21,10 +21,6 @@ const productSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  subCategory: {
-    type: String,
-    required: false,
-  },
   sizes: {
     type: Array,
     required: true,
@@ -43,7 +39,10 @@ const productSchema = new mongoose.Schema({
   },
   franchise: {
     type: String,
-    enum: ["GTA VI", "Marvel", "DC"],
+    required: false,
+  },
+  characteristics: {
+    type: Array,
     required: false,
   },
 });

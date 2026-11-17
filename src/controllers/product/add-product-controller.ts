@@ -1,6 +1,37 @@
 import { Request, Response } from "express";
 import { cloudinary } from "../../config/cloudinary";
-import AddProductService from "../../services/product/add-product-service";
+import AddProductService, {
+  AddProductError,
+  ProductCharacteristic,
+} from "../../services/product/add-product-service";
+
+function parseCharacteristics(value: unknown): ProductCharacteristic[] {
+  let raw: unknown = value;
+
+  if (typeof value === "string") {
+    if (!value.trim()) return [];
+    try {
+      raw = JSON.parse(value);
+    } catch {
+      throw new AddProductError("Características inválidas");
+    }
+  }
+
+  if (raw == null) return [];
+  if (!Array.isArray(raw)) {
+    throw new AddProductError("Características inválidas");
+  }
+
+  return raw.flatMap((item) => {
+    if (!item || typeof item !== "object") return [];
+    const record = item as Record<string, unknown>;
+    const title = typeof record.title === "string" ? record.title.trim() : "";
+    const description =
+      typeof record.description === "string" ? record.description.trim() : "";
+    if (!title || !description) return [];
+    return [{ title, description }];
+  });
+}
 
 class AddProductController {
   async handle(req: Request, res: Response) {
@@ -12,8 +43,10 @@ class AddProductController {
         category,
         subCategory,
         sizes,
+        bestseller,
         bestSellers,
         franchise,
+        characteristics,
       } = req.body;
 
       const image1 =
@@ -47,23 +80,47 @@ class AddProductController {
         })
       );
 
+      let parsedSizes: string[] = [];
+      if (Array.isArray(sizes)) {
+        parsedSizes = sizes;
+      } else if (typeof sizes === "string" && sizes.length > 0) {
+        parsedSizes = JSON.parse(sizes);
+        if (!Array.isArray(parsedSizes)) {
+          throw new AddProductError("Tamanhos inválidos");
+        }
+      }
+
+      const isBestseller = bestseller === "true" || bestSellers === "true";
+      const parsedCharacteristics = parseCharacteristics(characteristics);
+
       const newProductService = new AddProductService();
-      const resultNewProductService = await newProductService.execute({
+      await newProductService.execute({
         name,
         description,
         price: parseFloat(price),
         category,
         subCategory,
-        sizes: JSON.parse(sizes),
-        bestseller: bestSellers === "true",
+        sizes: parsedSizes,
+        bestseller: isBestseller,
         image: imagesUrl,
         date: Date.now(),
         franchise,
+        characteristics: parsedCharacteristics,
       });
 
       res.json({ success: true, message: "Produto adicionado com sucesso" });
     } catch (error) {
       console.error("Error adding product:", error);
+      if (error instanceof AddProductError) {
+        return res
+          .status(error.statusCode)
+          .json({ success: false, message: error.message });
+      }
+      if (error instanceof SyntaxError) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Tamanhos inválidos" });
+      }
       return res
         .status(500)
         .json({ success: false, message: "Erro interno ao adicionar produto" });
