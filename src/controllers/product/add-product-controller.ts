@@ -2,7 +2,36 @@ import { Request, Response } from "express";
 import { cloudinary } from "../../config/cloudinary";
 import AddProductService, {
   AddProductError,
+  ProductCharacteristic,
 } from "../../services/product/add-product-service";
+
+function parseCharacteristics(value: unknown): ProductCharacteristic[] {
+  let raw: unknown = value;
+
+  if (typeof value === "string") {
+    if (!value.trim()) return [];
+    try {
+      raw = JSON.parse(value);
+    } catch {
+      throw new AddProductError("Características inválidas");
+    }
+  }
+
+  if (raw == null) return [];
+  if (!Array.isArray(raw)) {
+    throw new AddProductError("Características inválidas");
+  }
+
+  return raw.flatMap((item) => {
+    if (!item || typeof item !== "object") return [];
+    const record = item as Record<string, unknown>;
+    const title = typeof record.title === "string" ? record.title.trim() : "";
+    const description =
+      typeof record.description === "string" ? record.description.trim() : "";
+    if (!title || !description) return [];
+    return [{ title, description }];
+  });
+}
 
 class AddProductController {
   async handle(req: Request, res: Response) {
@@ -17,6 +46,7 @@ class AddProductController {
         bestseller,
         bestSellers,
         franchise,
+        characteristics,
       } = req.body;
 
       const image1 =
@@ -61,6 +91,7 @@ class AddProductController {
       }
 
       const isBestseller = bestseller === "true" || bestSellers === "true";
+      const parsedCharacteristics = parseCharacteristics(characteristics);
 
       const newProductService = new AddProductService();
       await newProductService.execute({
@@ -74,6 +105,7 @@ class AddProductController {
         image: imagesUrl,
         date: Date.now(),
         franchise,
+        characteristics: parsedCharacteristics,
       });
 
       res.json({ success: true, message: "Produto adicionado com sucesso" });

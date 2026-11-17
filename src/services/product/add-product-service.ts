@@ -1,6 +1,11 @@
 import franchiseModel from "../../model/franchiseModel";
 import productModel from "../../model/productModel";
 
+export type ProductCharacteristic = {
+  title: string;
+  description: string;
+};
+
 interface ProductProps {
   name: string;
   description: string;
@@ -12,6 +17,7 @@ interface ProductProps {
   image: string[];
   date: number;
   franchise?: string;
+  characteristics?: ProductCharacteristic[];
 }
 
 export class AddProductError extends Error {
@@ -35,6 +41,7 @@ class AddProductService {
     image,
     date,
     franchise,
+    characteristics,
   }: ProductProps) {
     const missing: string[] = [];
     if (!name?.trim()) missing.push("nome");
@@ -70,6 +77,7 @@ class AddProductService {
         bestseller: bestseller || false,
         date,
         franchise: trimmedFranchise || undefined,
+        characteristics: characteristics ?? [],
       };
 
       const newProduct = new productModel(product);

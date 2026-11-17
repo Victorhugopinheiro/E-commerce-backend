@@ -41,6 +41,10 @@ const productSchema = new mongoose.Schema({
     type: String,
     required: false,
   },
+  characteristics: {
+    type: Array,
+    required: false,
+  },
 });
 
 const productModel =
