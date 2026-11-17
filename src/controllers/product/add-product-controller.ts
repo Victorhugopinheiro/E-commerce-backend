@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import { cloudinary } from "../../config/cloudinary";
-import AddProductService from "../../services/product/add-product-service";
+import AddProductService, {
+  AddProductError,
+} from "../../services/product/add-product-service";
 
 class AddProductController {
   async handle(req: Request, res: Response) {
@@ -12,6 +14,7 @@ class AddProductController {
         category,
         subCategory,
         sizes,
+        bestseller,
         bestSellers,
         franchise,
       } = req.body;
@@ -47,15 +50,27 @@ class AddProductController {
         })
       );
 
+      let parsedSizes: string[] = [];
+      if (Array.isArray(sizes)) {
+        parsedSizes = sizes;
+      } else if (typeof sizes === "string" && sizes.length > 0) {
+        parsedSizes = JSON.parse(sizes);
+        if (!Array.isArray(parsedSizes)) {
+          throw new AddProductError("Tamanhos inválidos");
+        }
+      }
+
+      const isBestseller = bestseller === "true" || bestSellers === "true";
+
       const newProductService = new AddProductService();
-      const resultNewProductService = await newProductService.execute({
+      await newProductService.execute({
         name,
         description,
         price: parseFloat(price),
         category,
         subCategory,
-        sizes: JSON.parse(sizes),
-        bestseller: bestSellers === "true",
+        sizes: parsedSizes,
+        bestseller: isBestseller,
         image: imagesUrl,
         date: Date.now(),
         franchise,
@@ -64,6 +79,16 @@ class AddProductController {
       res.json({ success: true, message: "Produto adicionado com sucesso" });
     } catch (error) {
       console.error("Error adding product:", error);
+      if (error instanceof AddProductError) {
+        return res
+          .status(error.statusCode)
+          .json({ success: false, message: error.message });
+      }
+      if (error instanceof SyntaxError) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Tamanhos inválidos" });
+      }
       return res
         .status(500)
         .json({ success: false, message: "Erro interno ao adicionar produto" });

@@ -124,7 +124,7 @@ export type Product = {
   bestseller?: boolean;
   date: number;
   reviews?: any[];
-  franchise?: "GTA VI" | "Marvel" | "DC";
+  franchise?: string;
   _id: string;
 };
 

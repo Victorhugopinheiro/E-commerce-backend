@@ -1,5 +1,5 @@
+import franchiseModel from "../../model/franchiseModel";
 import productModel from "../../model/productModel";
-import { Product as ProductType } from "../../types/mongoose.gen";
 
 interface ProductProps {
   name: string;
@@ -12,6 +12,15 @@ interface ProductProps {
   image: string[];
   date: number;
   franchise?: string;
+}
+
+export class AddProductError extends Error {
+  statusCode: number;
+
+  constructor(message: string, statusCode = 400) {
+    super(message);
+    this.statusCode = statusCode;
+  }
 }
 
 class AddProductService {
@@ -27,31 +36,40 @@ class AddProductService {
     date,
     franchise,
   }: ProductProps) {
-    try {
-      if (
-        !name ||
-        !description ||
-        !price ||
-        !category ||
-        !sizes ||
-        sizes.length === 0 ||
-        !image ||
-        image.length === 0
-      ) {
-        throw new Error("Todos os campos são obrigatórios");
-      }
+    const missing: string[] = [];
+    if (!name?.trim()) missing.push("nome");
+    if (!description?.trim()) missing.push("descrição");
+    if (!price || Number.isNaN(price)) missing.push("preço");
+    if (!category?.trim()) missing.push("categoria");
+    if (!sizes || sizes.length === 0) missing.push("tamanhos");
+    if (!image || image.length === 0) missing.push("imagem");
 
+    if (missing.length > 0) {
+      throw new AddProductError(`Preencha os campos: ${missing.join(", ")}`);
+    }
+
+    const trimmedFranchise = franchise?.trim();
+    if (trimmedFranchise) {
+      const franchiseExists = await franchiseModel.findOne({
+        type: trimmedFranchise,
+      });
+      if (!franchiseExists) {
+        throw new AddProductError("Franquia inválida");
+      }
+    }
+
+    try {
       const product: ProductProps = {
-        name,
-        description,
+        name: name.trim(),
+        description: description.trim(),
         price,
         image,
-        category,
-        subCategory,
+        category: category.trim(),
+        subCategory: subCategory?.trim() || undefined,
         sizes,
         bestseller: bestseller || false,
         date,
-        franchise: franchise || undefined,
+        franchise: trimmedFranchise || undefined,
       };
 
       const newProduct = new productModel(product);
@@ -59,7 +77,11 @@ class AddProductService {
 
       return { success: true, message: "Produto adicionado com sucesso" };
     } catch (err) {
-      throw new Error("Erro ao adicionar produto");
+      if (err instanceof AddProductError) {
+        throw err;
+      }
+      console.error("Error saving product:", err);
+      throw new AddProductError("Erro ao adicionar produto", 500);
     }
   }
 }
