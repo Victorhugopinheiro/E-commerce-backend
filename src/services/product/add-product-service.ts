@@ -95,10 +95,8 @@ class AddProductService {
     if (!category?.trim()) missing.push("categoria");
 
     if (hasModels) {
-      if (productPriceProvided || gallery.length > 0) {
-        throw new AddProductError(
-          "Produto com modelos não pode ter preço nem galeria"
-        );
+      if (productPriceProvided) {
+        throw new AddProductError("Produto com modelos não pode ter preço");
       }
     } else {
       if (price === undefined || Number.isNaN(price) || !price) {
@@ -137,6 +135,9 @@ class AddProductService {
 
       if (hasModels) {
         product.models = normalizedModels;
+        if (gallery.length > 0) {
+          product.image = gallery;
+        }
       } else {
         product.price = price;
         product.image = gallery;
