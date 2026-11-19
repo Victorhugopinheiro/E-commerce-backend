@@ -2,62 +2,55 @@ import { Request, Response } from "express";
 import CreateOrderService from "../../services/orders/create-order-service";
 import CepValidator from "../../utils/cepValidator";
 
-
 class CreateOrderController {
+  private CepValidator: CepValidator;
 
-    private CepValidator: CepValidator;
+  constructor() {
+    this.CepValidator = new CepValidator();
+  }
 
-    constructor() {
-        this.CepValidator = new CepValidator();
+  async handle(req: Request, res: Response) {
+    const { userId, items, shippingAddress, paymentMethod } = req.body;
+
+    if (
+      !userId ||
+      !items ||
+      items.length === 0 ||
+      !shippingAddress ||
+      !paymentMethod
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Dados incompletos para criar o pedido.",
+      });
     }
 
-
-    async handle(req: Request, res: Response) {
-
-        const { userId, items, shippingAddress, paymentMethod } = req.body;
-
-        if (!userId || items.length === 0 || !shippingAddress || !paymentMethod) {
-            return res.status(400).json({ success: false, message: 'Dados incompletos para criar o pedido.' });
-        }
-
-        items.map((item: { size: string; quantity: number; productId: string; price: number }) => {
-            if (!item.size || !item.quantity || !item.productId) {
-                return res.status(400).json({ success: false, message: 'Dados incompletos para criar o pedido.' });
-            }
-        })
-
-
-
-
-
-        if (!items || !Array.isArray(items) || items.length === 0) {
-            return res.status(400).json({ success: false, message: 'Items são obrigatórios' })
-        }
-
-
-        const cepValidations = await this.CepValidator.validate(shippingAddress.zipCode);
-
-        if (!cepValidations.success) {
-            return res.status(400).json({ success: false, message: cepValidations.error });
-        }
-
-        const createOrderService = new CreateOrderService();
-        const result = await createOrderService.execute({ userId, items, shippingAddress, paymentMethod });
-
-
-        res.status(result.success ? 200 : 400).json(result);
-
-
-
-
-
-
-
-
-
-
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Items são obrigatórios" });
     }
+
+    const cepValidations = await this.CepValidator.validate(
+      shippingAddress.zipCode
+    );
+
+    if (!cepValidations.success) {
+      return res
+        .status(400)
+        .json({ success: false, message: cepValidations.error });
+    }
+
+    const createOrderService = new CreateOrderService();
+    const result = await createOrderService.execute({
+      userId,
+      items,
+      shippingAddress,
+      paymentMethod,
+    });
+
+    res.status(result.success ? 200 : 400).json(result);
+  }
 }
-
 
 export default CreateOrderController;

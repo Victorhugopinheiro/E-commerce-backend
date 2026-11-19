@@ -3,6 +3,7 @@ import { cloudinary } from "../../config/cloudinary";
 import AddProductService, {
   AddProductError,
   ProductCharacteristic,
+  ProductModelInput,
 } from "../../services/product/add-product-service";
 
 function parseCharacteristics(value: unknown): ProductCharacteristic[] {
@@ -33,6 +34,78 @@ function parseCharacteristics(value: unknown): ProductCharacteristic[] {
   });
 }
 
+function parseModelDrafts(value: unknown): { name: string; price: number }[] {
+  if (value == null) return [];
+  if (typeof value === "string" && !value.trim()) return [];
+
+  let raw: unknown = value;
+  if (typeof value === "string") {
+    try {
+      raw = JSON.parse(value);
+    } catch {
+      throw new AddProductError("Modelos inválidos");
+    }
+  }
+
+  if (!Array.isArray(raw)) {
+    throw new AddProductError("Modelos inválidos");
+  }
+
+  return raw.map((item) => {
+    if (!item || typeof item !== "object") {
+      throw new AddProductError("Modelos inválidos");
+    }
+    const record = item as Record<string, unknown>;
+    const name = typeof record.name === "string" ? record.name.trim() : "";
+    const price =
+      typeof record.price === "number"
+        ? record.price
+        : parseFloat(String(record.price));
+    if (!name) {
+      throw new AddProductError("Modelo sem nome");
+    }
+    if (Number.isNaN(price)) {
+      throw new AddProductError("Preço do modelo inválido");
+    }
+    return { name, price };
+  });
+}
+
+function readProductPrice(value: unknown): {
+  provided: boolean;
+  price?: number;
+} {
+  if (value == null) return { provided: false };
+  if (typeof value === "string" && value.trim() === "") {
+    return { provided: false };
+  }
+  const price = typeof value === "number" ? value : parseFloat(String(value));
+  if (Number.isNaN(price)) {
+    throw new AddProductError("Preço inválido");
+  }
+  return { provided: true, price };
+}
+
+function filesFrom(
+  files: Request["files"],
+  field: string
+): Express.Multer.File[] {
+  if (!files || Array.isArray(files)) return [];
+  const selected = files[field];
+  return Array.isArray(selected) ? selected : [];
+}
+
+async function uploadImages(files: Express.Multer.File[]): Promise<string[]> {
+  return Promise.all(
+    files.map(async (img) => {
+      const result = await cloudinary.uploader.upload(img.path, {
+        resource_type: "image",
+      });
+      return result.secure_url;
+    })
+  );
+}
+
 class AddProductController {
   async handle(req: Request, res: Response) {
     try {
@@ -47,38 +120,41 @@ class AddProductController {
         bestSellers,
         franchise,
         characteristics,
+        models,
       } = req.body;
 
-      const image1 =
-        req.files && (req.files as any).image1
-          ? (req.files as any).image1[0]
-          : null;
-      const image2 =
-        req.files && (req.files as any).image2
-          ? (req.files as any).image2[0]
-          : null;
-      const image3 =
-        req.files && (req.files as any).image3
-          ? (req.files as any).image3[0]
-          : null;
-      const image4 =
-        req.files && (req.files as any).image4
-          ? (req.files as any).image4[0]
-          : null;
+      const galleryFiles = [
+        ...filesFrom(req.files, "image1"),
+        ...filesFrom(req.files, "image2"),
+        ...filesFrom(req.files, "image3"),
+        ...filesFrom(req.files, "image4"),
+      ];
+      const modelFiles = filesFrom(req.files, "modelImages");
+      const drafts = parseModelDrafts(models);
+      const productPrice = readProductPrice(price);
 
-      const images = [image1, image2, image3, image4].filter(
-        (img) => img !== null
-      );
+      if (drafts.length > 0) {
+        if (modelFiles.length !== drafts.length) {
+          throw new AddProductError("Cada modelo precisa de uma foto");
+        }
+        if (galleryFiles.length > 0 || productPrice.provided) {
+          throw new AddProductError(
+            "Produto com modelos não pode ter preço nem galeria"
+          );
+        }
+      } else if (modelFiles.length > 0) {
+        throw new AddProductError("Cada modelo precisa de uma foto");
+      }
 
-      let imagesUrl = await Promise.all(
-        images.map(async (img) => {
-          let result = await cloudinary.uploader.upload(img.path, {
-            resource_type: "image",
-          });
-
-          return result.secure_url;
-        })
-      );
+      const imagesUrl =
+        drafts.length > 0 ? [] : await uploadImages(galleryFiles);
+      const modelImages =
+        drafts.length > 0 ? await uploadImages(modelFiles) : [];
+      const parsedModels: ProductModelInput[] = drafts.map((draft, index) => ({
+        name: draft.name,
+        price: draft.price,
+        image: modelImages[index],
+      }));
 
       let parsedSizes: string[] = [];
       if (Array.isArray(sizes)) {
@@ -97,7 +173,8 @@ class AddProductController {
       await newProductService.execute({
         name,
         description,
-        price: parseFloat(price),
+        price: productPrice.price,
+        productPriceProvided: productPrice.provided,
         category,
         subCategory,
         sizes: parsedSizes,
@@ -106,6 +183,7 @@ class AddProductController {
         date: Date.now(),
         franchise,
         characteristics: parsedCharacteristics,
+        models: parsedModels,
       });
 
       res.json({ success: true, message: "Produto adicionado com sucesso" });

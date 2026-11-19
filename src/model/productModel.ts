@@ -11,11 +11,11 @@ const productSchema = new mongoose.Schema({
   },
   price: {
     type: Number,
-    required: true,
+    required: false,
   },
   image: {
     type: Array,
-    required: true,
+    required: false,
   },
   category: {
     type: String,
@@ -23,7 +23,21 @@ const productSchema = new mongoose.Schema({
   },
   sizes: {
     type: Array,
-    required: true,
+    required: false,
+  },
+  models: {
+    type: [
+      new mongoose.Schema(
+        {
+          name: { type: String, required: true },
+          image: { type: String, required: true },
+          price: { type: Number, required: true },
+        },
+        { _id: false }
+      ),
+    ],
+    required: false,
+    default: undefined,
   },
   bestseller: {
     type: Boolean,

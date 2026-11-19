@@ -1,87 +1,73 @@
 import orderModel from "../../model/orderModel";
-import productModel from "../../model/productModel";
 import userModel from "../../model/userModel";
 import CartItem from "../../types/cart";
 import { CreateOrderRequest } from "../../types/order";
+import {
+  priceOrderItems,
+  sameCartLine,
+} from "../product/resolve-purchase-line";
 
 class CreateOrderService {
+  async execute({
+    items,
+    paymentMethod,
+    shippingAddress,
+    userId,
+  }: CreateOrderRequest) {
+    try {
+      const user = await userModel.findById(userId);
 
+      if (!user) {
+        return { success: false, message: "Usuário não encontrado" };
+      }
 
-    async execute({ items, paymentMethod, shippingAddress, userId }: CreateOrderRequest) {
-        try {
+      const priced = await priceOrderItems(items);
+      if (!priced.ok) {
+        return { success: false, message: priced.message };
+      }
 
+      const orderItems = priced.orderItems.map(
+        ({ name: _name, ...item }) => item
+      );
+      const totalAmount = priced.total;
 
-            const user = await userModel.findById(userId);
+      const newOrder = new orderModel({
+        userId,
+        items: orderItems,
+        totalAmount,
+        shippingAddress,
+        paymentMethod,
+        status: "pending",
+        paymentStatus: "pending",
+        date: Date.now(),
+      });
 
-            if (!user) {
-                return { success: false, message: 'Usuário não encontrado' };
-            }
+      await newOrder.save();
 
+      const rawCart = user.cartData;
+      const itemsCart: CartItem[] = Array.isArray(rawCart) ? [...rawCart] : [];
 
-            const orderItems = [];
-            let totalAmount = 0;
-
-            for (const item of items) {
-                if (item.quantity <= 0) {
-                    return { success: false, message: `Quantidade inválida para o produto ${item.productId}` };
-                }
-
-                const product = await productModel.findById(item.productId);
-
-                if (!product) {
-                    return { success: false, message: `Produto não encontrado: ${item.productId}` };
-                }
-
-                const itemTotal = product.price * item.quantity;
-                totalAmount += itemTotal;
-
-                orderItems.push({
-
-                    productId: item.productId,
-                    quantity: item.quantity,
-                    size: item.size,
-                    price: product.price
-
-                });
-
-
-            }
-
-            const newOrder = new orderModel({
-                userId,
-                items: orderItems,
-                totalAmount,
-                shippingAddress,
-                paymentMethod,
-                status: 'pending',
-                paymentStatus: 'pending',
-                date: Date.now()
-            })
-
-            newOrder.save();
-
-            const rawCart = user.cartData
-            const itemsCart = Array.isArray(rawCart) ? [...rawCart] : [];
-
-            for (const item of items) {
-                const cartItemIndex = itemsCart.findIndex(cartItem => cartItem.productId === item.productId && cartItem.size === item.size);
-                if (cartItemIndex !== -1) {
-                    itemsCart.splice(cartItemIndex, 1);
-                }
-
-            }
-
-            return { success: true, message: 'Pedido criado com sucesso', order: newOrder };
-
-
-
-        } catch (err) {
-            console.error(err);
-            return { success: false, message: 'Erro no servidor', err };
+      for (const item of priced.orderItems) {
+        const cartItemIndex = itemsCart.findIndex((cartItem) =>
+          sameCartLine(cartItem, item)
+        );
+        if (cartItemIndex !== -1) {
+          itemsCart.splice(cartItemIndex, 1);
         }
+      }
+
+      await userModel.findByIdAndUpdate(userId, { cartData: itemsCart });
+
+      return {
+        success: true,
+        message: "Pedido criado com sucesso",
+        order: newOrder,
+      };
+    } catch (err) {
+      console.error(err);
+      return { success: false, message: "Erro no servidor", err };
     }
+  }
 }
-
-
 
 export default CreateOrderService;
