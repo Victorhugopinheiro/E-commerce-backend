@@ -6,10 +6,16 @@ export type ProductCharacteristic = {
   description: string;
 };
 
+export type ProductModelInput = {
+  name: string;
+  image: string;
+  price: number;
+};
+
 interface ProductProps {
   name: string;
   description: string;
-  price: number;
+  price?: number;
   category: string;
   subCategory?: string;
   sizes: string[];
@@ -18,6 +24,8 @@ interface ProductProps {
   date: number;
   franchise?: string;
   characteristics?: ProductCharacteristic[];
+  models?: ProductModelInput[];
+  productPriceProvided?: boolean;
 }
 
 export class AddProductError extends Error {
@@ -27,6 +35,34 @@ export class AddProductError extends Error {
     super(message);
     this.statusCode = statusCode;
   }
+}
+
+function normalizeModels(models: ProductModelInput[]): ProductModelInput[] {
+  const seen = new Set<string>();
+
+  return models.map((model) => {
+    const name = model.name?.trim() ?? "";
+    if (!name) {
+      throw new AddProductError("Modelo sem nome");
+    }
+    if (seen.has(name)) {
+      throw new AddProductError("Modelo repetido");
+    }
+    seen.add(name);
+
+    if (!model.image) {
+      throw new AddProductError("Cada modelo precisa de uma foto");
+    }
+    if (
+      typeof model.price !== "number" ||
+      Number.isNaN(model.price) ||
+      !model.price
+    ) {
+      throw new AddProductError("Preço do modelo inválido");
+    }
+
+    return { name, image: model.image, price: model.price };
+  });
 }
 
 class AddProductService {
@@ -42,14 +78,35 @@ class AddProductService {
     date,
     franchise,
     characteristics,
+    models,
+    productPriceProvided,
   }: ProductProps) {
+    const normalizedModels =
+      models && models.length > 0 ? normalizeModels(models) : [];
+    const hasModels = normalizedModels.length > 0;
+    const gallery = image ?? [];
+    const normalizedSizes = (sizes ?? [])
+      .map((size) => (typeof size === "string" ? size.trim() : ""))
+      .filter((size) => size.length > 0);
+
     const missing: string[] = [];
     if (!name?.trim()) missing.push("nome");
     if (!description?.trim()) missing.push("descrição");
-    if (!price || Number.isNaN(price)) missing.push("preço");
     if (!category?.trim()) missing.push("categoria");
-    if (!sizes || sizes.length === 0) missing.push("tamanhos");
-    if (!image || image.length === 0) missing.push("imagem");
+
+    if (hasModels) {
+      if (productPriceProvided || gallery.length > 0) {
+        throw new AddProductError(
+          "Produto com modelos não pode ter preço nem galeria"
+        );
+      }
+    } else {
+      if (price === undefined || Number.isNaN(price) || !price) {
+        missing.push("preço");
+      }
+      if (normalizedSizes.length === 0) missing.push("tamanhos");
+      if (gallery.length === 0) missing.push("imagem");
+    }
 
     if (missing.length > 0) {
       throw new AddProductError(`Preencha os campos: ${missing.join(", ")}`);
@@ -66,19 +123,24 @@ class AddProductService {
     }
 
     try {
-      const product: ProductProps = {
+      const product: Record<string, unknown> = {
         name: name.trim(),
         description: description.trim(),
-        price,
-        image,
         category: category.trim(),
         subCategory: subCategory?.trim() || undefined,
-        sizes,
+        sizes: normalizedSizes,
         bestseller: bestseller || false,
         date,
         franchise: trimmedFranchise || undefined,
         characteristics: characteristics ?? [],
       };
+
+      if (hasModels) {
+        product.models = normalizedModels;
+      } else {
+        product.price = price;
+        product.image = gallery;
+      }
 
       const newProduct = new productModel(product);
       await newProduct.save();

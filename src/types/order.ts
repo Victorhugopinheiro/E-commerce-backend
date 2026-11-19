@@ -4,6 +4,7 @@ export interface CreateOrderRequest {
     productId: string;
     quantity: number;
     size?: string;
+    model?: string;
     price?: number;
     name?: string;
   }[];
@@ -23,5 +24,5 @@ export interface CreateOrderRequest {
 
 export interface UpdateOrderStatusRequest {
   orderId: string;
-  status: 'pending' | 'confirmed' | 'shipped' | 'delivered' | 'cancelled';
+  status: "pending" | "confirmed" | "shipped" | "delivered" | "cancelled";
 }

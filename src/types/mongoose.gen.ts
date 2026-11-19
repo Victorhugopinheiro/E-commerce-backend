@@ -56,6 +56,19 @@ export type Categories = {
 };
 
 /**
+ * Lean version of FranchiseDocument
+ *
+ * This has all Mongoose getters & functions removed. This type will be returned from `FranchiseDocument.toObject()`. To avoid conflicts with model names, use the type alias `FranchiseObject`.
+ * ```
+ * const franchiseObject = franchise.toObject();
+ * ```
+ */
+export type Franchise = {
+  type: string;
+  _id: string;
+};
+
+/**
  * Lean version of OrderItemDocument
  *
  * This has all Mongoose getters & functions removed. This type will be returned from `OrderDocument.toObject()`.
@@ -67,6 +80,7 @@ export type OrderItem = {
   productId: Product["_id"] | Product;
   quantity: number;
   size?: string;
+  model?: string;
   price?: number;
   _id: string;
 };
@@ -106,6 +120,20 @@ export type Order = {
 };
 
 /**
+ * Lean version of ProductModelFieldDocument
+ *
+ * This has all Mongoose getters & functions removed. This type will be returned from `ProductDocument.toObject()`.
+ * ```
+ * const productObject = product.toObject();
+ * ```
+ */
+export type ProductModelField = {
+  name: string;
+  image: string;
+  price: number;
+};
+
+/**
  * Lean version of ProductDocument
  *
  * This has all Mongoose getters & functions removed. This type will be returned from `ProductDocument.toObject()`. To avoid conflicts with model names, use the type alias `ProductObject`.
@@ -116,15 +144,16 @@ export type Order = {
 export type Product = {
   name: string;
   description: string;
-  price: number;
-  image: any[];
+  price?: number;
+  image?: any[];
   category: string;
-  subCategory: string;
-  sizes: any[];
+  sizes?: any[];
+  models?: ProductModelField[];
   bestseller?: boolean;
   date: number;
-  reviews?: any[];
+  reviews: any[];
   franchise?: string;
+  characteristics?: any[];
   _id: string;
 };
 
@@ -142,6 +171,9 @@ export type Review = {
   platform: string;
   mediaUrl?: string;
   mediaType?: "image" | "video";
+  date: number;
+  userName: string;
+  userImage?: string;
   _id: string;
   createdAt?: string;
   updatedAt?: string;

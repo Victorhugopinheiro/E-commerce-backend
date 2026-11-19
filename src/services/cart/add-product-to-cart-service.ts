@@ -1,67 +1,98 @@
 import userModel from "../../model/userModel";
 import CartItem from "../../types/cart";
 import ProductModel from "../../model/productModel";
+import {
+  resolvePurchaseLine,
+  sameCartLine,
+} from "../product/resolve-purchase-line";
 interface AddProductToCartProps {
-    userId: string;
-    productId: string;
-    quantity: number;
-    size?: string;
-    name?: string;
+  userId: string;
+  productId: string;
+  quantity: number;
+  size?: string;
+  model?: string;
+  name?: string;
 }
 
-
-
 class AddProductToCartService {
-    async execute({ productId, quantity, userId, size, name }: AddProductToCartProps) {
+  async execute({
+    productId,
+    quantity,
+    userId,
+    size,
+    model,
+    name,
+  }: AddProductToCartProps) {
+    try {
+      if (!productId || !quantity || !userId || userId === "") {
+        return { success: false, message: "Produto não identificado" };
+      }
 
+      const user = await userModel.findById(userId);
 
-        try {
-            if (!productId || !quantity || !userId || userId === '' || size === '') {
-                return { success: false, message: 'Produto não identificado' };
-            }
+      if (!user) {
+        return { success: false, message: "Usuário não encontrado" };
+      }
 
-            const user = await userModel.findById(userId);
+      const productExists = await ProductModel.findById(productId);
 
-            if (!user) {
-                return { success: false, message: 'Usuário não encontrado' };
-            }
+      if (!productExists) {
+        return { success: false, message: "Produto não encontrado" };
+      }
 
-            const productExists = await ProductModel.findById(productId);
+      const resolved = resolvePurchaseLine(productExists, { size, model });
+      if (!resolved.ok) {
+        return { success: false, message: resolved.message };
+      }
 
-            if (!productExists) {
-                return { success: false, message: 'Produto não encontrado' };
-            }
+      const rawCart = user.cartData;
+      const userCart: CartItem[] = Array.isArray(rawCart) ? [...rawCart] : [];
 
+      const productIndex = userCart.findIndex((item) =>
+        sameCartLine(item, {
+          productId,
+          size: resolved.line.size,
+          model: resolved.line.model,
+        })
+      );
 
-            const rawCart = user.cartData;
-            const userCart: CartItem[] = Array.isArray(rawCart) ? [...rawCart] : [];
+      if (productIndex !== -1) {
+        userCart[productIndex].quantity = Number(
+          userCart[productIndex].quantity + 1
+        );
+      } else {
+        userCart.push({
+          productId,
+          quantity,
+          size: resolved.line.size,
+          model: resolved.line.model,
+          name,
+        });
+      }
 
-            const productIndex = userCart.findIndex(item => item.productId === productId && item.size === size);
+      const addedProduct = await userModel.findByIdAndUpdate(
+        userId,
+        { cartData: userCart },
+        { new: true }
+      );
 
+      if (!addedProduct) {
+        return {
+          success: false,
+          message: "Erro ao adicionar produto ao carrinho",
+        };
+      }
 
-            if (productIndex !== -1) {
-                userCart[productIndex].quantity = Number(userCart[productIndex].quantity + 1);
-            } else {
-                userCart.push({ productId, quantity, size, name });
-            }
-
-            const addedProduct = await userModel.findByIdAndUpdate(userId, { cartData: userCart }, { new: true });
-
-            if (!addedProduct) {
-                return { success: false, message: 'Erro ao adicionar produto ao carrinho' };
-            }
-
-            return { success: true, message: 'Produto adicionado ao carrinho com sucesso', cart: addedProduct.cartData };
-
-
-
-
-        } catch (err) {
-            console.error(err);
-            return { success: false, message: 'Erro no servidor', err };
-        }
-
+      return {
+        success: true,
+        message: "Produto adicionado ao carrinho com sucesso",
+        cart: addedProduct.cartData,
+      };
+    } catch (err) {
+      console.error(err);
+      return { success: false, message: "Erro no servidor", err };
     }
+  }
 }
 
 export default AddProductToCartService;

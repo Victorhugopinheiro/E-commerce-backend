@@ -1,6 +1,7 @@
 import productModel from "../../model/productModel";
 import userModel from "../../model/userModel";
 import CartItem from "../../types/cart";
+import { readModels, trimToAbsent } from "../product/resolve-purchase-line";
 
 class GetAllItemsCartService {
   async execute({ userId }: { userId: string }) {
@@ -34,13 +35,25 @@ class GetAllItemsCartService {
         continue;
       }
 
-      kept.push(rawItem);
-
       const responseItem: CartItem = { ...(rawItem as CartItem) };
-      delete responseItem.price;
-      if (typeof findProduct.price === "number") {
-        responseItem.price = findProduct.price;
+      const modelName = trimToAbsent(responseItem.model);
+      if (modelName) {
+        const match = readModels(findProduct.models).find(
+          (model) => model.name === modelName
+        );
+        if (!match) {
+          continue;
+        }
+        responseItem.model = match.name;
+        responseItem.price = match.price;
+        if (match.image) responseItem.image = match.image;
+      } else {
+        delete responseItem.price;
+        if (typeof findProduct.price === "number") {
+          responseItem.price = findProduct.price;
+        }
       }
+      kept.push(rawItem);
       cart.push(responseItem);
     }
 
