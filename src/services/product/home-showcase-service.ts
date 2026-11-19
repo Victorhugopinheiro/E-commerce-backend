@@ -53,6 +53,20 @@ function cardFromModels(
   };
 }
 
+function coverFromGallery(image: unknown): {
+  present: boolean;
+  image?: string;
+} {
+  if (!Array.isArray(image) || image.length === 0) {
+    return { present: false };
+  }
+  const first = image[0];
+  if (typeof first === "string" && first.length > 0) {
+    return { present: true, image: first };
+  }
+  return { present: true };
+}
+
 function toShowcaseItem(product: LeanShowcaseProduct): ShowcaseItem | null {
   const id = product._id == null ? "" : String(product._id);
   if (!id || typeof product.name !== "string" || product.name.length === 0) {
@@ -61,12 +75,14 @@ function toShowcaseItem(product: LeanShowcaseProduct): ShowcaseItem | null {
 
   const fromModels = cardFromModels(product.models);
   if (fromModels) {
+    const gallery = coverFromGallery(product.image);
+    const cover = gallery.present ? gallery.image : fromModels.image;
     const item: ShowcaseItem = {
       _id: id,
       name: product.name,
       price: fromModels.price,
     };
-    if (fromModels.image) item.image = fromModels.image;
+    if (cover) item.image = cover;
     return item;
   }
   if (Array.isArray(product.models) && product.models.length > 0) {
