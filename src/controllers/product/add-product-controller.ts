@@ -137,17 +137,14 @@ class AddProductController {
         if (modelFiles.length !== drafts.length) {
           throw new AddProductError("Cada modelo precisa de uma foto");
         }
-        if (galleryFiles.length > 0 || productPrice.provided) {
-          throw new AddProductError(
-            "Produto com modelos não pode ter preço nem galeria"
-          );
+        if (productPrice.provided) {
+          throw new AddProductError("Produto com modelos não pode ter preço");
         }
       } else if (modelFiles.length > 0) {
         throw new AddProductError("Cada modelo precisa de uma foto");
       }
 
-      const imagesUrl =
-        drafts.length > 0 ? [] : await uploadImages(galleryFiles);
+      const imagesUrl = await uploadImages(galleryFiles);
       const modelImages =
         drafts.length > 0 ? await uploadImages(modelFiles) : [];
       const parsedModels: ProductModelInput[] = drafts.map((draft, index) => ({
