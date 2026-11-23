@@ -102,7 +102,7 @@ class AddProductService {
       if (price === undefined || Number.isNaN(price) || !price) {
         missing.push("preço");
       }
-      if (normalizedSizes.length === 0) missing.push("tamanhos");
+
       if (gallery.length === 0) missing.push("imagem");
     }
 
