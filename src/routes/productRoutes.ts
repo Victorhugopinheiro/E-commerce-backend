@@ -44,6 +44,6 @@ router.get("/showcase", new HomeShowcaseController().handle);
 
 router.delete("/delete", authMiddleware, new DeleteProductController().handle);
 
-router.get("/detail", authMiddleware, new DetailProductController().handle);
+router.get("/detail/:productId", new DetailProductController().handle);
 
 export default router;

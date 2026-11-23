@@ -1,24 +1,28 @@
-
-import productModel from '../../model/productModel';
+import productModel from "../../model/productModel";
 
 class DetailProductService {
-    async execute(productId: string) {
-        try {
-            if (!productId) {
-                return { success: false, message: 'Product ID é obrigatório' };
-            }
+  async execute(productId: string) {
+    try {
+      if (!productId) {
+        return { success: false, message: "Product ID é obrigatório" };
+      }
 
+      const response = await productModel.findById(productId);
 
-          const response = await productModel.findById(productId);
+      if (!response) {
+        throw new Error("Produto não encontrado");
+      }
 
-        
-
-            return { success: true, message: 'Produto encontrado com sucesso', product: response };
-        } catch (err) {
-            console.error(err);
-            return { success: false, message: 'Erro no servidor' };
-        }
+      return {
+        success: true,
+        message: "Produto encontrado com sucesso",
+        product: response,
+      };
+    } catch (err) {
+      console.error(err);
+      return { success: false, message: "Erro no servidor" };
     }
+  }
 }
 
 export default DetailProductService;
