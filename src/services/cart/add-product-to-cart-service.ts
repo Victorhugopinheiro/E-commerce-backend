@@ -32,7 +32,6 @@ type CartResult = {
 
 type LineInput = {
   productId: string;
-  quantity: number;
   size?: string;
   model?: string;
   name?: string;
@@ -42,7 +41,6 @@ class AddProductToCartService {
   async execute({
     shopper,
     productId,
-    quantity,
     size,
     model,
     name,
@@ -52,7 +50,6 @@ class AddProductToCartService {
         return await this.addForGuest({
           shopper,
           productId,
-          quantity,
           size,
           model,
           name,
@@ -83,7 +80,6 @@ class AddProductToCartService {
         : [];
       const cart = addLine(lines, {
         productId,
-        quantity,
         size: resolved.line.size,
         model: resolved.line.model,
         name,
@@ -116,14 +112,12 @@ class AddProductToCartService {
   private async addForGuest({
     shopper,
     productId,
-    quantity,
     size,
     model,
     name,
   }: {
     shopper: Extract<Shopper, { kind: "guest" }>;
     productId: string;
-    quantity: number;
     size?: string;
     model?: string;
     name?: string;
@@ -154,7 +148,6 @@ class AddProductToCartService {
 
       const cart = addLine(opened.lines, {
         productId,
-        quantity,
         size: resolved.line.size,
         model: resolved.line.model,
         name,
@@ -196,7 +189,7 @@ function addLine(lines: CartItem[], input: LineInput) {
   if (index === -1) {
     cart.push({
       productId: input.productId,
-      quantity: input.quantity,
+      quantity: 1,
       size: input.size,
       model: input.model,
       name: input.name,
