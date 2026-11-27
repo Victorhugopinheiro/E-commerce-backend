@@ -48,6 +48,15 @@ const userSchema = new mongoose.Schema(
       unique: true,
       sparse: true,
     },
+    mergedGuestCarts: {
+      type: [
+        {
+          guestId: { type: String, required: true },
+          fingerprint: { type: String, required: true },
+        },
+      ],
+      default: [],
+    },
   },
   { minimize: false }
 );

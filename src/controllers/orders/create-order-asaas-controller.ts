@@ -1,34 +1,20 @@
 import { Request, Response } from "express";
 import CreateOrderAsaasService from "../../services/orders/create-order-asaas-service";
+import { checkoutInputFromRequest, runCheckout } from "./finish-checkout";
 
 class CreateOrderAsaasController {
   async handle(req: Request, res: Response) {
-    const { userId, items, shippingAddress, paymentMethod } = req.body;
-    const { origin } = req.headers;
-
-    if (!userId || !shippingAddress || !paymentMethod) {
-      return res.status(400).json({
-        success: false,
-        message: "Dados incompletos para criar o pedido.",
-      });
-    }
-
-    if (!Array.isArray(items) || items.length === 0) {
+    const input = checkoutInputFromRequest(req);
+    if (!input) {
       return res
-        .status(400)
-        .json({ success: false, message: "Items são obrigatórios" });
+        .status(401)
+        .json({ success: false, message: "Usuário não identificado" });
     }
 
     const createOrderService = new CreateOrderAsaasService();
-    const result = await createOrderService.execute({
-      userId,
-      items,
-      shippingAddress,
-      paymentMethod,
-      origin: String(origin || ""),
-    });
-
-    return res.status(result.success ? 200 : 400).json(result);
+    return runCheckout(res, input.shopper, () =>
+      createOrderService.execute(input)
+    );
   }
 }
 

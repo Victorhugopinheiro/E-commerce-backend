@@ -1,67 +1,63 @@
-import productModel from "../../model/productModel";
 import userModel from "../../model/userModel";
-import CartItem from "../../types/cart";
-import { readModels, trimToAbsent } from "../product/resolve-purchase-line";
+import { Shopper } from "../../types/shopper";
+import {
+  GuestCartUnavailableError,
+  openGuestCart,
+  writeGuestCart,
+} from "../guest/guest-cart-store";
+import { presentStoredLines } from "./present-cart-lines";
 
 class GetAllItemsCartService {
-  async execute({ userId }: { userId: string }) {
-    const user = await userModel.findById(userId);
+  async execute(shopper: Shopper) {
+    try {
+      if (shopper.kind === "guest") {
+        return await this.listGuest(shopper);
+      }
 
-    if (!user) {
-      return { success: false, message: "Usuário não encontrado" };
+      const user = await userModel.findById(shopper.userId);
+
+      if (!user) {
+        return { success: false, message: "Usuário não encontrado" };
+      }
+
+      const rawCart = user.cartData;
+      const storedItems: unknown[] = Array.isArray(rawCart) ? rawCart : [];
+      const { kept, cart } = await presentStoredLines(storedItems);
+
+      if (kept.length !== storedItems.length) {
+        await userModel.findByIdAndUpdate(shopper.userId, { cartData: kept });
+      }
+
+      return { success: true, cart };
+    } catch (err) {
+      console.error(err);
+      return { success: false, message: "Erro no servidor", err };
     }
+  }
 
-    const rawCart = user.cartData;
-    const storedItems: unknown[] = Array.isArray(rawCart) ? rawCart : [];
-    const kept: unknown[] = [];
-    const cart: CartItem[] = [];
+  private async listGuest(shopper: Extract<Shopper, { kind: "guest" }>) {
+    try {
+      const opened = await openGuestCart(
+        shopper.guestId,
+        shopper.cookieExisted
+      );
+      const { kept, cart } = await presentStoredLines(opened.lines);
 
-    for (const rawItem of storedItems) {
-      if (!rawItem || typeof rawItem !== "object") {
-        continue;
+      if (kept.length !== opened.lines.length) {
+        await writeGuestCart(opened.guestId, kept as typeof opened.lines);
       }
 
-      const productId =
-        "productId" in rawItem && typeof rawItem.productId === "string"
-          ? rawItem.productId
-          : "";
-
-      if (!productId) {
-        continue;
+      return { success: true, cart, guestId: opened.guestId };
+    } catch (err) {
+      if (err instanceof GuestCartUnavailableError) {
+        return {
+          success: false,
+          unavailable: true,
+          message: err.message,
+        };
       }
-
-      const findProduct = await productModel.findById(productId);
-      if (!findProduct) {
-        continue;
-      }
-
-      const responseItem: CartItem = { ...(rawItem as CartItem) };
-      const modelName = trimToAbsent(responseItem.model);
-      if (modelName) {
-        const match = readModels(findProduct.models).find(
-          (model) => model.name === modelName
-        );
-        if (!match) {
-          continue;
-        }
-        responseItem.model = match.name;
-        responseItem.price = match.price;
-        if (match.image) responseItem.image = match.image;
-      } else {
-        delete responseItem.price;
-        if (typeof findProduct.price === "number") {
-          responseItem.price = findProduct.price;
-        }
-      }
-      kept.push(rawItem);
-      cart.push(responseItem);
+      throw err;
     }
-
-    if (kept.length !== storedItems.length) {
-      await userModel.findByIdAndUpdate(userId, { cartData: kept });
-    }
-
-    return { success: true, cart };
   }
 }
 
