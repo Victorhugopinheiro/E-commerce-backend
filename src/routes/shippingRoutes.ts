@@ -1,16 +1,10 @@
+import { Router } from "express";
+import ValidateCepController from "../controllers/shipping/validateCepController";
+import CalculatingCepController from "../controllers/shipping/calculatingCepController";
 
-import { Router } from 'express';
-import { authCartMiddleware } from '../middleware/authCart';
-import ValidateCepController from '../controllers/shipping/validateCepController';
-import CalculatingCepController from '../controllers/shipping/calculatingCepController';
+const router = Router();
 
-
-const router = Router()
-
-
-router.get("/validateCep",  new ValidateCepController().handle);
-router.post("/calculateShipping",  new CalculatingCepController().handle);
-
-
+router.post("/validateCep", new ValidateCepController().handle);
+router.post("/calculateShipping", new CalculatingCepController().handle);
 
 export default router;

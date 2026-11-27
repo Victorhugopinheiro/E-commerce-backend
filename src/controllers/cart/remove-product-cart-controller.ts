@@ -1,11 +1,21 @@
 import { Request, Response } from "express";
 import RemoveProductCartService from "../../services/cart/remove-product-cart-service";
+import { rememberGuest } from "../../lib/cookies";
+import { respondCart } from "./respond-cart";
 
 class RemoveProductCartController {
   async handle(req: Request, res: Response) {
-    const { userId, productId, size, model } = req.body;
+    const shopper = req.shopper;
+    if (!shopper) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Usuário não identificado" });
+    }
 
-    if (!userId || !productId) {
+    const { productId, size, model } = req.body ?? {};
+
+    if (!productId) {
+      if (shopper.kind === "guest") rememberGuest(res, shopper.guestId);
       return res
         .status(400)
         .json({ success: false, message: "Dados incompletos" });
@@ -13,13 +23,13 @@ class RemoveProductCartController {
 
     const serviceRemoveProductCart = new RemoveProductCartService();
     const responseRemoveProductCart = await serviceRemoveProductCart.execute({
-      userId,
+      shopper,
       productId,
       size,
       model,
     });
 
-    return res.status(200).json(responseRemoveProductCart);
+    return respondCart(res, shopper, responseRemoveProductCart);
   }
 }
 

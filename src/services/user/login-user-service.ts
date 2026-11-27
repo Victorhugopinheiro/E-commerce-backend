@@ -1,49 +1,49 @@
 import userModel from "../../model/userModel";
-import bcrypt from 'bcrypt'; // ES Modules
-import jwt from 'jsonwebtoken';
+import bcrypt from "bcrypt"; // ES Modules
+import jwt from "jsonwebtoken";
 import { generateToken } from "./register-user-service";
 
-
 interface LoginProps {
-    email: string;
-    password: string;
+  email: string;
+  password: string;
 }
 
+type LoginResult =
+  | { success: false; message: string }
+  | { success: true; message: string; token: string; userId: string };
+
 class LoginUserService {
-    async execute({ email, password }: LoginProps) {
+  async execute({ email, password }: LoginProps): Promise<LoginResult> {
+    try {
+      if (!email || !password) {
+        return { success: false, message: "Email e Password são obrigatórios" };
+      }
 
-        try {
+      const user = await userModel.findOne({ email });
 
-            if (!email || !password) {
-                return { success: false, message: 'Email e Password são obrigatórios' };
-            }
+      if (!user) {
+        return { success: false, message: "Credenciais incorretas" };
+      }
 
-            const user = await userModel.findOne({ email });
+      const passwordMatch = await bcrypt.compare(password, user.password);
 
-            if (!user) {
-                return { success: false, message: 'Credenciais incorretas' };
-            }
+      if (passwordMatch) {
+        const token = generateToken({ id: user._id, email: user.email });
 
-
-            const passwordMatch = await bcrypt.compare(password, user.password);
-
-            if (passwordMatch) {
-                const token = generateToken({ id: user._id, email: user.email });
-                
-
-                return { success: true, message: 'Login realizado com sucesso', token };
-            } else {
-                return { success: false, message: 'Credenciais incorretas' };
-            }
-
-
-        } catch (err) {
-            console.error(err);
-            return { success: false, message: 'Erro no servidor' };
-        }
-
-
+        return {
+          success: true,
+          message: "Login realizado com sucesso",
+          token,
+          userId: String(user._id),
+        };
+      } else {
+        return { success: false, message: "Credenciais incorretas" };
+      }
+    } catch (err) {
+      console.error(err);
+      return { success: false, message: "Erro no servidor" };
     }
+  }
 }
 
 export default LoginUserService;

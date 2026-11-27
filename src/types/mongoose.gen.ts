@@ -36,7 +36,8 @@ export type Address = {
  * ```
  */
 export type AsaasProcessedWebhook = {
-  userId: User["_id"] | User;
+  userId?: User["_id"] | User;
+  guestId?: string;
   eventId: string;
   _id: string;
 };
@@ -94,19 +95,28 @@ export type OrderItem = {
  * ```
  */
 export type Order = {
-  userId: User["_id"] | User;
+  userId?: User["_id"] | User;
+  guestId?: string;
   items: OrderItem[];
   totalAmount: number;
   status?: "pending" | "confirmed" | "shipped" | "delivered" | "cancelled";
   shippingAddress: {
     street: string;
+    number?: string;
+    neighborhood?: string;
+    complement?: string;
     city: string;
     state: string;
     zipCode: string;
     country: string;
     ibgeCode?: string;
-    number: string;
     phone?: string;
+  };
+  shipping: {
+    serviceId?: string;
+    serviceName?: string;
+    price?: number;
+    deadline?: number;
   };
   paymentMethod: string;
   paymentStatus?: "pending" | "paid" | "failed" | "refunded";
@@ -155,6 +165,27 @@ export type Product = {
   franchise?: string;
   characteristics?: any[];
   _id: string;
+};
+
+/**
+ * Lean version of PurchaseIdentityDocument
+ *
+ * This has all Mongoose getters & functions removed. This type will be returned from `PurchaseIdentityDocument.toObject()`. To avoid conflicts with model names, use the type alias `PurchaseIdentityObject`.
+ * ```
+ * const purchaseidentityObject = purchaseidentity.toObject();
+ * ```
+ */
+export type PurchaseIdentity = {
+  orderId: Order["_id"] | Order;
+  userId?: User["_id"] | User;
+  guestId?: string;
+  fullName: string;
+  email: string;
+  cpf: string;
+  phone: string;
+  _id: string;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 /**
@@ -219,6 +250,20 @@ export type UserAddress = {
 };
 
 /**
+ * Lean version of UserMergedGuestCartDocument
+ *
+ * This has all Mongoose getters & functions removed. This type will be returned from `UserDocument.toObject()`.
+ * ```
+ * const userObject = user.toObject();
+ * ```
+ */
+export type UserMergedGuestCart = {
+  guestId: string;
+  fingerprint: string;
+  _id: string;
+};
+
+/**
  * Lean version of UserDocument
  *
  * This has all Mongoose getters & functions removed. This type will be returned from `UserDocument.toObject()`. To avoid conflicts with model names, use the type alias `UserObject`.
@@ -234,5 +279,6 @@ export type User = {
   asaasCustomerId?: string;
   addresses: UserAddress[];
   cpf?: string;
+  mergedGuestCarts: UserMergedGuestCart[];
   _id: string;
 };
