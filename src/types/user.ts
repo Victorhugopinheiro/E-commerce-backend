@@ -1,25 +1,24 @@
 export interface Address {
-    street: string;
-    city: string;
-    state: string;
-    zipCode: string;
-    country: string;
-    phone: string;
-    isPrimary?: boolean;
-    _id?: string;
+  street: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  country: string;
+  phone: string;
+  isPrimary?: boolean;
+  _id?: string;
 }
 
 export interface User {
-    _id?: string;
-    name: string;
-    email: string;
-    password?: string;
-    cartData?: Record<string, any>;
-    stripeCustomerId?: string;
-    asaasCustomerId?: string;
-    addresses?: Address[];
+  _id?: string;
+  name: string;
+  email: string;
+  password?: string;
+  cartData?: Record<string, any>;
+  asaasCustomerId?: string;
+  addresses?: Address[];
 }
 
-export interface UserProfile extends Omit<User, 'password'> {
-    // User profile without sensitive password field
+export interface UserProfile extends Omit<User, "password"> {
+  // User profile without sensitive password field
 }

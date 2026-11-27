@@ -5,8 +5,6 @@ import cartRoutes from "./cartRoutes";
 import orderRoutes from "./orderRoutes";
 import addressRoutes from "./addressRoutes";
 import webhookRoutes from "./apiRoutes";
-import { authMiddleware } from "../middleware/adminMiddlewere";
-import WebhookController from "../controllers/api/webhookController";
 import shippingRoutes from "./shippingRoutes";
 import categoryRoutes from "./categoryRoutes";
 import franchiseRoutes from "./franchiseRoutes";

@@ -15,7 +15,7 @@ src/
 ├── models/             # Mongoose schemas and database layer
 ├── routes/             # Route definitions, aggregated in index.ts
 ├── middleware/         # Express middleware (auth, validation, error handling)
-├── lib/                # External service configurations (Stripe, Cloudinary)
+├── lib/                # Shared helpers (cookies and similar)
 ├── config/             # Environment-specific configurations
 ├── types/              # TypeScript type definitions and interfaces
 └── utils/              # Utility functions and helpers
@@ -47,6 +47,7 @@ services/
 ```
 
 **Benefits:**
+
 - Easier to locate related code
 - Clear feature boundaries
 - Simpler testing (feature-level test files)
@@ -56,6 +57,7 @@ services/
 ## 3. Separation of Concerns: Controllers → Services → Models
 
 ### Controllers (`src/controllers/`)
+
 - **Responsibility**: Handle HTTP requests and responses only
 - **Do**: Parse request params, call services, return responses
 - **Don't**: Database queries, business logic, validation logic
@@ -75,13 +77,14 @@ export const getUserController = async (req: Request, res: Response) => {
 // ❌ Bad - Business logic in controller
 export const getUserController = async (req: Request, res: Response) => {
   const user = await User.findById(req.params.id);
-  if (user.role === 'admin') {
+  if (user.role === "admin") {
     // ... complex business logic here
   }
 };
 ```
 
 ### Services (`src/services/`)
+
 - **Responsibility**: Implement business logic
 - **Do**: Data validation, orchestration, calculations, external API calls
 - **Don't**: HTTP concerns, request/response handling
@@ -90,19 +93,20 @@ export const getUserController = async (req: Request, res: Response) => {
 // ✅ Good
 export const getUserService = async (userId: string) => {
   if (!userId || !isValidObjectId(userId)) {
-    throw new Error('Invalid user ID');
+    throw new Error("Invalid user ID");
   }
-  
+
   const user = await User.findById(userId).lean();
   if (!user) {
-    throw new Error('User not found');
+    throw new Error("User not found");
   }
-  
+
   return user;
 };
 ```
 
 ### Models (`src/models/`)
+
 - **Responsibility**: Define schemas and database layer only
 - **Do**: Schema definition, indexes, validations, static/instance methods
 - **Don't**: Business logic beyond data validation
@@ -115,20 +119,20 @@ const userSchema = new Schema({
     required: true,
     unique: true,
     lowercase: true,
-    validate: [validator.isEmail, 'Invalid email']
+    validate: [validator.isEmail, "Invalid email"],
   },
   password: {
     type: String,
     required: true,
-    minlength: 6
+    minlength: 6,
   },
   role: {
     type: String,
-    enum: ['user', 'admin'],
-    default: 'user'
+    enum: ["user", "admin"],
+    default: "user",
   },
   createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
+  updatedAt: { type: Date, default: Date.now },
 });
 
 // Add indexes for performance
@@ -144,18 +148,18 @@ userSchema.index({ role: 1 });
 
 ```typescript
 // routes/index.ts - Main aggregation point
-import express from 'express';
-import userRoutes from './userRoutes';
-import productRoutes from './productRoutes';
-import cartRoutes from './cartRoutes';
-import orderRoutes from './orderRoutes';
+import express from "express";
+import userRoutes from "./userRoutes";
+import productRoutes from "./productRoutes";
+import cartRoutes from "./cartRoutes";
+import orderRoutes from "./orderRoutes";
 
 const router = express.Router();
 
-router.use('/users', userRoutes);
-router.use('/products', productRoutes);
-router.use('/cart', cartRoutes);
-router.use('/orders', orderRoutes);
+router.use("/users", userRoutes);
+router.use("/products", productRoutes);
+router.use("/cart", cartRoutes);
+router.use("/orders", orderRoutes);
 
 export default router;
 ```
@@ -164,21 +168,22 @@ export default router;
 
 ```typescript
 // routes/userRoutes.ts
-import express from 'express';
-import { registerUserController } from '../controllers/user/register-user-controller';
-import { loginUserController } from '../controllers/user/login-user-controller';
-import { authMiddleware } from '../middleware/authMiddleware';
+import express from "express";
+import { registerUserController } from "../controllers/user/register-user-controller";
+import { loginUserController } from "../controllers/user/login-user-controller";
+import { authMiddleware } from "../middleware/authMiddleware";
 
 const router = express.Router();
 
-router.post('/register', registerUserController);
-router.post('/login', loginUserController);
-router.get('/profile', authMiddleware, getUserDetailController);
+router.post("/register", registerUserController);
+router.post("/login", loginUserController);
+router.get("/profile", authMiddleware, getUserDetailController);
 
 export default router;
 ```
 
 **Rules:**
+
 - One route file per feature domain
 - Keep routes simple (minimal logic)
 - Attach middleware directly in route definitions
@@ -196,7 +201,7 @@ app.use(cors()); // CORS first
 app.use(express.json()); // Parse JSON
 app.use(cookieParser()); // Parse cookies
 app.use(requestLogger); // Logging
-app.use('/uploads', multerMiddleware); // File uploads for specific routes
+app.use("/uploads", multerMiddleware); // File uploads for specific routes
 app.use(validateRequest); // Validation
 app.use(authMiddleware); // Authentication
 app.use(authorizationMiddleware); // Authorization
@@ -214,19 +219,23 @@ app.use(errorHandler); // Error handling LAST
 
 ```typescript
 // ✅ Good middleware pattern
-export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+export const authMiddleware = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
-    const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
-    
+    const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
+
     if (!token) {
-      return res.status(401).json({ error: 'No token provided' });
+      return res.status(401).json({ error: "No token provided" });
     }
-    
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET!);
     req.user = decoded;
     next();
   } catch (error) {
-    res.status(401).json({ error: 'Invalid token' });
+    res.status(401).json({ error: "Invalid token" });
   }
 };
 ```
@@ -245,7 +254,7 @@ declare global {
       user?: {
         id: string;
         email: string;
-        role: 'user' | 'admin';
+        role: "user" | "admin";
       };
     }
   }
@@ -256,7 +265,7 @@ export interface IUser {
   _id: string;
   email: string;
   password: string;
-  role: 'user' | 'admin';
+  role: "user" | "admin";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -270,6 +279,7 @@ export interface ICartItem {
 ```
 
 **Rules:**
+
 - Keep types close to where they're used
 - Export types from a central location when shared
 - Use interfaces for objects, types for primitives/unions
@@ -284,24 +294,17 @@ export interface ICartItem {
 ```typescript
 // config/database.ts
 export const mongoConnection = {
-  uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/ecommerce',
+  uri: process.env.MONGODB_URI || "mongodb://localhost:27017/ecommerce",
   options: {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     maxPoolSize: 10,
     serverSelectionTimeoutMS: 5000,
-  }
+  },
 };
 
-// config/stripe.ts - Load from environment variables ONLY
-import Stripe from 'stripe';
-
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-10-16',
-});
-
 // config/cloudinary.ts - Load from environment variables ONLY
-import { v2 as cloudinary } from 'cloudinary';
+import { v2 as cloudinary } from "cloudinary";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_NAME,
@@ -311,6 +314,7 @@ cloudinary.config({
 ```
 
 **Critical Rules:**
+
 - ✅ Load secrets ONLY from environment variables
 - ✅ Use `.env.local` (gitignored) for local development
 - ✅ Initialize external services in config files only
@@ -322,13 +326,13 @@ cloudinary.config({
 
 ```typescript
 // ❌ NEVER DO THIS
-const stripe = new Stripe('sk_live_51234567890abcdef');
+const apiKey = "live_secret_key_here";
 
 // ❌ NEVER DO THIS
-console.log(`Stripe key: ${process.env.STRIPE_SECRET_KEY}`);
+console.log(`Asaas key: ${process.env.ASAAS_SANDBOX_API_KEY}`);
 
 // ✅ DO THIS
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+const apiKey = process.env.ASAAS_SANDBOX_API_KEY;
 ```
 
 ---
@@ -357,13 +361,13 @@ export class ValidationError extends AppError {
 }
 
 export class NotFoundError extends AppError {
-  constructor(message: string = 'Resource not found') {
+  constructor(message: string = "Resource not found") {
     super(message, 404);
   }
 }
 
 export class UnauthorizedError extends AppError {
-  constructor(message: string = 'Unauthorized') {
+  constructor(message: string = "Unauthorized") {
     super(message, 401);
   }
 }
@@ -380,7 +384,7 @@ export const errorHandler = (
   next: NextFunction
 ) => {
   const statusCode = error instanceof AppError ? error.statusCode : 500;
-  const message = error.message || 'Internal Server Error';
+  const message = error.message || "Internal Server Error";
 
   console.error(`[${new Date().toISOString()}] Error:`, error);
 
@@ -390,13 +394,13 @@ export const errorHandler = (
       message,
       statusCode,
       // Never expose sensitive details in production
-      ...(process.env.NODE_ENV === 'development' && { stack: error.stack })
-    }
+      ...(process.env.NODE_ENV === "development" && { stack: error.stack }),
+    },
   });
 };
 
 // Use in async routes with try-catch
-router.post('/register', async (req, res, next) => {
+router.post("/register", async (req, res, next) => {
   try {
     // ... business logic
   } catch (error) {
@@ -410,6 +414,7 @@ router.post('/register', async (req, res, next) => {
 ## 9. Naming Conventions
 
 ### Files & Directories
+
 - **Feature folders**: lowercase, plural when multiple (e.g., `user/`, `products/`)
 - **Files**: kebab-case with suffix (e.g., `register-user-controller.ts`, `add-product-service.ts`)
 - **Controllers**: `*-controller.ts`
@@ -418,6 +423,7 @@ router.post('/register', async (req, res, next) => {
 - **Routes**: `*Routes.ts`
 
 ### Functions & Variables
+
 ```typescript
 // Controllers - verb + noun + Controller
 export const registerUserController = async (req, res) => {};
@@ -444,34 +450,41 @@ const canAccessRoute = true;
 
 ```typescript
 // Wrap async route handlers to catch errors
-const asyncHandler = (fn: Function) => (req: Request, res: Response, next: NextFunction) => {
-  Promise.resolve(fn(req, res, next)).catch(next);
-};
+const asyncHandler =
+  (fn: Function) => (req: Request, res: Response, next: NextFunction) => {
+    Promise.resolve(fn(req, res, next)).catch(next);
+  };
 
 // Usage
-router.post('/users', asyncHandler(registerUserController));
+router.post("/users", asyncHandler(registerUserController));
 ```
 
 ### Request/Response Pattern
 
 ```typescript
 // Always return consistent response format
-router.get('/products', asyncHandler(async (req, res) => {
-  const products = await getProductsService();
-  res.json({
-    success: true,
-    data: products,
-    timestamp: new Date()
-  });
-}));
+router.get(
+  "/products",
+  asyncHandler(async (req, res) => {
+    const products = await getProductsService();
+    res.json({
+      success: true,
+      data: products,
+      timestamp: new Date(),
+    });
+  })
+);
 
-router.post('/products', asyncHandler(async (req, res) => {
-  const product = await createProductService(req.body);
-  res.status(201).json({
-    success: true,
-    data: product
-  });
-}));
+router.post(
+  "/products",
+  asyncHandler(async (req, res) => {
+    const product = await createProductService(req.body);
+    res.status(201).json({
+      success: true,
+      data: product,
+    });
+  })
+);
 ```
 
 ---
@@ -485,54 +498,54 @@ router.post('/products', asyncHandler(async (req, res) => {
 const productSchema = new Schema({
   name: {
     type: String,
-    required: [true, 'Product name is required'],
+    required: [true, "Product name is required"],
     trim: true,
-    minlength: [3, 'Name must be at least 3 characters']
+    minlength: [3, "Name must be at least 3 characters"],
   },
   price: {
     type: Number,
     required: true,
-    min: [0, 'Price cannot be negative']
+    min: [0, "Price cannot be negative"],
   },
   stock: {
     type: Number,
     default: 0,
-    min: 0
+    min: 0,
   },
   category: {
     type: String,
-    enum: ['electronics', 'clothing', 'food'],
-    required: true
+    enum: ["electronics", "clothing", "food"],
+    required: true,
   },
   image: {
     type: String, // Store Cloudinary URL only
-    default: null
+    default: null,
   },
   createdAt: { type: Date, default: Date.now, index: true },
-  updatedAt: { type: Date, default: Date.now }
+  updatedAt: { type: Date, default: Date.now },
 });
 
 // Indexes for performance
 productSchema.index({ category: 1, price: 1 });
-productSchema.index({ name: 'text' }); // For search
+productSchema.index({ name: "text" }); // For search
 
 // Middleware for timestamps
-productSchema.pre('save', function(next) {
+productSchema.pre("save", function (next) {
   this.updatedAt = new Date();
   next();
 });
 
-export const Product = mongoose.model('Product', productSchema);
+export const Product = mongoose.model("Product", productSchema);
 ```
 
 ### Query Best Practices
 
 ```typescript
 // ✅ Use lean() for read-only queries (better performance)
-const products = await Product.find({ category: 'electronics' }).lean();
+const products = await Product.find({ category: "electronics" }).lean();
 
 // ✅ Use select() to fetch only needed fields
-const user = await User.findById(userId).select('email name role -password');
+const user = await User.findById(userId).select("email name role -password");
 
 // ✅ Implement pagination
 const page = req.query.page || 1;
@@ -546,7 +559,7 @@ const users = await User.find()
 const allUsers = await User.find();
 
 // ❌ Avoid - no limit
-const results = await Product.find({ category: 'electronics' });
+const results = await Product.find({ category: "electronics" });
 ```
 
 ---
@@ -563,13 +576,13 @@ export const registerUserService = async (
 ) => {
   // Validate input
   if (!validator.isEmail(email)) {
-    throw new ValidationError('Invalid email format');
+    throw new ValidationError("Invalid email format");
   }
 
   // Check if user exists
   const existingUser = await User.findOne({ email }).lean();
   if (existingUser) {
-    throw new ValidationError('Email already registered');
+    throw new ValidationError("Email already registered");
   }
 
   // Hash password (never store plain text)
@@ -579,7 +592,7 @@ export const registerUserService = async (
   const user = await User.create({
     email,
     password: hashedPassword,
-    name
+    name,
   });
 
   return { _id: user._id, email: user.email, name: user.name };
@@ -594,80 +607,34 @@ export const generateToken = (userId: string, role: string) => {
   return jwt.sign(
     { id: userId, role },
     process.env.JWT_SECRET!,
-    { expiresIn: '15m' } // Short expiration
+    { expiresIn: "15m" } // Short expiration
   );
 };
 
 // Store in HTTP-only cookie
-res.cookie('token', token, {
+res.cookie("token", token, {
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'strict',
-  maxAge: 15 * 60 * 1000 // 15 minutes
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "strict",
+  maxAge: 15 * 60 * 1000, // 15 minutes
 });
 
 // ❌ NEVER DO THIS
 export const generateToken = (userId: string) => {
-  return jwt.sign({ id: userId }, 'my_secret_key_12345'); // EXPOSED!
+  return jwt.sign({ id: userId }, "my_secret_key_12345"); // EXPOSED!
 };
 ```
 
 ---
 
-## 13. Payment Processing (Stripe & Razorpay)
+## 13. Payment Processing (Asaas)
 
-### Stripe Integration Pattern - SECURE API KEYS
-
-```typescript
-// services/orders/create-order-stripe-service.ts
-export const createStripeOrder = async (
-  userId: string,
-  cartItems: ICartItem[],
-  amount: number
-) => {
-  try {
-    // Create payment intent
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amount * 100), // Convert to cents
-      currency: 'usd',
-      metadata: { userId },
-      idempotencyKey: `${userId}-${Date.now()}` // Prevent duplicates
-    });
-
-    // Create order in database
-    const order = await Order.create({
-      userId,
-      items: cartItems,
-      total: amount,
-      stripePaymentId: paymentIntent.id,
-      status: 'pending'
-    });
-
-    return { clientSecret: paymentIntent.client_secret, orderId: order._id };
-  } catch (error) {
-    throw new AppError('Failed to create payment', 500);
-  }
-};
-
-// Webhook handler for payment confirmation
-export const handleStripeWebhook = async (event: Stripe.Event) => {
-  switch (event.type) {
-    case 'payment_intent.succeeded':
-      const paymentIntent = event.data.object as Stripe.PaymentIntent;
-      await updateOrderStatus(paymentIntent.metadata.orderId, 'completed');
-      break;
-
-    case 'payment_intent.payment_failed':
-      const failedIntent = event.data.object as Stripe.PaymentIntent;
-      await updateOrderStatus(failedIntent.metadata.orderId, 'failed');
-      break;
-  }
-};
-```
+Checkout is created in `src/services/orders/create-order-asaas-service.ts`. Payment confirmation arrives at `src/controllers/api/asaasWebhookController.ts`.
 
 **Critical Security Rules:**
-- ✅ Load Stripe keys from environment variables only
-- ✅ Verify webhook signatures before processing
+
+- ✅ Load Asaas keys from environment variables only
+- ✅ Verify the webhook token before processing
 - ✅ Never log payment details or API keys
 - ❌ Never expose keys in client-side code
 - ❌ Never commit keys to version control
@@ -680,9 +647,9 @@ export const handleStripeWebhook = async (event: Stripe.Event) => {
 
 ```typescript
 // middleware/multer.ts
-import multer from 'multer';
-import { CloudinaryStorage } from 'multer-storage-cloudinary';
-import { v2 as cloudinary } from 'cloudinary';
+import multer from "multer";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
+import { v2 as cloudinary } from "cloudinary";
 
 // Keys loaded from environment variables
 cloudinary.config({
@@ -694,27 +661,31 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
   cloudinary,
   params: {
-    folder: 'ecommerce/products',
-    resource_type: 'auto',
-    public_id: (req, file) => `${Date.now()}-${file.originalname}`
-  }
+    folder: "ecommerce/products",
+    resource_type: "auto",
+    public_id: (req, file) => `${Date.now()}-${file.originalname}`,
+  },
 });
 
 export const uploadMiddleware = multer({
   storage,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
   fileFilter: (req, file, cb) => {
-    const allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
+    const allowedMimes = ["image/jpeg", "image/png", "image/webp"];
     if (allowedMimes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('Invalid file type'));
+      cb(new Error("Invalid file type"));
     }
-  }
+  },
 });
 
 // Usage in routes
-router.post('/products', uploadMiddleware.single('image'), addProductController);
+router.post(
+  "/products",
+  uploadMiddleware.single("image"),
+  addProductController
+);
 ```
 
 ---
@@ -734,10 +705,6 @@ JWT_EXPIRE=15m
 # Node Environment
 NODE_ENV=development
 PORT=3000
-
-# Stripe (Get from https://dashboard.stripe.com/)
-STRIPE_SECRET_KEY=sk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
 
 # Razorpay (Get from https://dashboard.razorpay.com/)
 RAZORPAY_KEY_ID=rzp_test_...
@@ -765,6 +732,7 @@ LOG_LEVEL=debug
 ```
 
 **Security Checklist:**
+
 - ✅ Add `.env` and `.env.local` to `.gitignore`
 - ✅ Use `.env.example` for documentation
 - ✅ Replace placeholder values in production
@@ -775,14 +743,9 @@ LOG_LEVEL=debug
 
 ```typescript
 // Validate environment variables at startup
-const requiredEnvVars = [
-  'MONGODB_URI',
-  'JWT_SECRET',
-  'STRIPE_SECRET_KEY',
-  'CLOUDINARY_NAME'
-];
+const requiredEnvVars = ["MONGODB_URI", "JWT_SECRET", "CLOUDINARY_NAME"];
 
-requiredEnvVars.forEach(envVar => {
+requiredEnvVars.forEach((envVar) => {
   if (!process.env[envVar]) {
     throw new Error(`Missing required environment variable: ${envVar}`);
   }
@@ -827,6 +790,7 @@ npm run dev
 ## 17. Code Quality & Consistency
 
 ### TypeScript Configuration
+
 - Enable `strict: true` in `tsconfig.json`
 - Use noImplicitAny, noUnusedLocals, noUnusedParameters
 - Always define return types for functions
@@ -836,18 +800,18 @@ npm run dev
 ```typescript
 // Order imports:
 // 1. Node modules
-import express, { Request, Response } from 'express';
-import mongoose from 'mongoose';
+import express, { Request, Response } from "express";
+import mongoose from "mongoose";
 
 // 2. External packages
-import jwt from 'jsonwebtoken';
-import bcrypt from 'bcrypt';
+import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
 
 // 3. Local modules
-import { getUserService } from '../services/user/';
-import { User } from '../models/userModel';
-import { authMiddleware } from '../middleware/authMiddleware';
-import { AppError } from '../utils/customErrors';
+import { getUserService } from "../services/user/";
+import { User } from "../models/userModel";
+import { authMiddleware } from "../middleware/authMiddleware";
+import { AppError } from "../utils/customErrors";
 ```
 
 ### Comments & Documentation
@@ -898,6 +862,5 @@ export const registerUserService = async (
 
 - [Express Best Practices](https://expressjs.com/en/advanced/best-practice-security.html)
 - [MongoDB Mongoose Guide](https://mongoosejs.com/)
-- [Stripe Security](https://stripe.com/docs/security)
 - [TypeScript Handbook](https://www.typescriptlang.org/docs/)
 - [JWT Best Practices](https://tools.ietf.org/html/rfc8725)

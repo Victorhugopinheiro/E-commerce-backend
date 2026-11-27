@@ -231,7 +231,6 @@ export type User = {
   email: string;
   password: string;
   cartData?: any;
-  stripeCustomerId?: string;
   asaasCustomerId?: string;
   addresses: UserAddress[];
   cpf?: string;
